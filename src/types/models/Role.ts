@@ -1,0 +1,1 @@
+export type Role = "ROOT" | "ADMIN" | "MANAGER";

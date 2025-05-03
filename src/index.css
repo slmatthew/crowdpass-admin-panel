@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+.input {
+  @apply border border-gray-300 rounded px-3 py-1.5 text-sm w-full;
+}
+
+.select {
+  @apply border border-gray-300 rounded px-3 py-1.5 text-sm w-full;
+}
+
+.btn-primary {
+  @apply bg-blue-500 text-white px-4 py-1.5 rounded-md text-sm hover:bg-blue-600 transition;
+}
+
+.btn-secondary {
+  @apply bg-gray-200 px-4 py-1.5 rounded-md text-sm hover:bg-gray-300 transition;
+}

@@ -1,0 +1,1 @@
+export type TicketStatus = "AVAILABLE" | "RESERVED" | "SOLD" | "USED";
