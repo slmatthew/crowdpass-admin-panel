@@ -55,7 +55,7 @@ export function EventForm({ initialValues, onSubmit, isSubmitting }: Props) {
   useEffect(() => {
     (async () => {
       const [cats, orgs] = await Promise.all([
-        api.get("admin/dashboard/metadata/categories").then((res) => res.data),
+        api.get("admin/categories").then((res) => res.data),
         api.get("admin/dashboard/metadata/organizers").then((res) => res.data),
       ]);
       setCategories(cats);
@@ -69,7 +69,7 @@ export function EventForm({ initialValues, onSubmit, isSubmitting }: Props) {
     (async () => {
       const subs = await api
         .get(
-          `admin/dashboard/metadata/categories/${selectedCategoryId}/subcategories`
+          `admin/categories/${selectedCategoryId}/subcategories`
         )
         .then((res) => res.data);
       setSubcategories(subs);
