@@ -21,7 +21,7 @@ export function PromoteModal({ open, onClose, user, onUpdated }: Props) {
 
   useEffect(() => {
     if (role === "MANAGER") {
-      api.get("admin/dashboard/metadata/organizers")
+      api.get("admin/organizers")
         .then((res) => {
           setOrganizers(res.data);
           setOrganizerId(res.data[0]?.id);
