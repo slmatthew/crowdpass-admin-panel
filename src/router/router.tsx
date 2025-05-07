@@ -38,7 +38,6 @@ export function AppRouter() {
           <Route path="/events/:id/edit" element={<EditEventPage />} />
           
           <Route path="/organizers" element={<OrganizersPage />} />
-          <Route path="/organizers/me" element={<OrganizerPage />} />
           <Route path="/organizers/:id" element={<OrganizerPage />} />
 
           <Route path="/users" element={<UsersPage />} />
