@@ -70,10 +70,10 @@ export function EventCard({ event }: { event: Event }) {
         </div>
 
         <Link
-          to={`/events/${event.id}/edit`}
+          to={`/events/${event.id}`}
           className="text-blue-500 hover:underline text-sm mt-2 self-start"
         >
-          ✏️ Редактировать
+          Открыть →
         </Link>
       </div>
     </Card>

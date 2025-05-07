@@ -1,7 +1,7 @@
-import { GlobalModals } from "@/components/GlobalModals";
+import { GlobalModals } from "@/components/modals/GlobalModals";
 import { createContext, useContext, useState } from "react";
 
-type ModalType = "user" | null;
+type ModalType = "user" | "organizer" | null;
 
 interface ModalState {
   type: ModalType;
