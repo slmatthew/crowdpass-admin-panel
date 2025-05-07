@@ -9,7 +9,7 @@ interface Props {
   isUpdating: boolean;
 }
 
-export function BookingModal({ booking, onClose, onStatusChange, isUpdating }: Props) {
+export function BookingEditModal({ booking, onClose, onStatusChange, isUpdating }: Props) {
   const [selectedStatus, setSelectedStatus] = useState<Booking["status"]>(booking.status);
 
   const handleChange = (status: Booking["status"]) => {
