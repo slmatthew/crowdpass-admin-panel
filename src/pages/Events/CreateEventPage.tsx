@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useApiClient } from "@/hooks/useApiClient";
-import { EventForm, EventFormData } from "@/components/EventForm";
+import { EventForm, EventFormData } from "@/components/events/EventForm";
 import { Event } from "@/types/models/Event";
 import { useState } from "react";
 import toast from "react-hot-toast";
