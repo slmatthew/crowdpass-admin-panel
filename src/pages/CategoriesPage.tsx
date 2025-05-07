@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useApiClient } from "@/hooks/useApiClient";
-import { CategoryAccordion } from "@/components/CategoryAccordion";
+import { CategoryAccordion } from "@/components/categories/CategoryAccordion";
 import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/Button";
 import { CategoryModal } from "@/components/categories/CategoryModal";
