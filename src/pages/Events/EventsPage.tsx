@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Event } from "@/types/models/Event";
-import { EventCard } from "@/components/EventCard";
-import { EventFilters } from "@/components/EventFilters";
+import { EventCard } from "@/components/events/EventCard";
+import { EventFilters } from "@/components/events/EventFilters";
 import { useEventFilters } from "@/hooks/useEventFilters";
 import { useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";

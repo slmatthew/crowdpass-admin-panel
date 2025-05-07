@@ -56,7 +56,7 @@ export function EventForm({ initialValues, onSubmit, isSubmitting }: Props) {
     (async () => {
       const [cats, orgs] = await Promise.all([
         api.get("admin/categories").then((res) => res.data),
-        api.get("admin/dashboard/metadata/organizers").then((res) => res.data),
+        api.get("admin/organizers/available").then((res) => res.data),
       ]);
       setCategories(cats);
       setOrganizers(orgs);
