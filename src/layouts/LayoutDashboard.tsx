@@ -95,9 +95,13 @@ function SidebarNav({
         <SidebarLink to="/dashboard" label="Главная" onClick={onNavigate} />
         <SidebarLink to="/bookings" label="Бронирования" onClick={onNavigate} />
         <SidebarLink to="/events" label="Мероприятия" onClick={onNavigate} />
+        <RoleAccess allow={['MANAGER']}>
+          <SidebarLink to="/organizers/me" label="Организатор" />
+        </RoleAccess>
         <RoleAccess allow={['ROOT', 'ADMIN']}>
-          <SidebarLink to="/users" label="Пользователи" onClick={onNavigate} />
+          <SidebarLink to="/organizers" label="Организаторы" />
           <SidebarLink to="/categories" label="Категории" onClick={onNavigate} />
+          <SidebarLink to="/users" label="Пользователи" onClick={onNavigate} />
           <SidebarLink to="/logs" label="Логи" onClick={onNavigate} />
         </RoleAccess>
       </nav>

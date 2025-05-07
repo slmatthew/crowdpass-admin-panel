@@ -13,6 +13,8 @@ import CreateEventPage from "@/pages/Events/CreateEventPage";
 import EditEventPage from "@/pages/Events/EditEventPage";
 import CategoriesPage from "@/pages/CategoriesPage";
 import UsersPage from "@/pages/UsersPage";
+import OrganizersPage from "@/pages/OrganizersPage";
+import OrganizerPage from "@/pages/OrganizerPage";
 
 export function AppRouter() {
   return (
@@ -34,6 +36,10 @@ export function AppRouter() {
           <Route path="/events" element={<EventsPage />} />
           <Route path="/events/create" element={<CreateEventPage />} />
           <Route path="/events/:id/edit" element={<EditEventPage />} />
+          
+          <Route path="/organizers" element={<OrganizersPage />} />
+          <Route path="/organizers/me" element={<OrganizerPage />} />
+          <Route path="/organizers/:id" element={<OrganizerPage />} />
 
           <Route path="/users" element={<UsersPage />} />
           <Route path="/categories" element={<CategoriesPage />} />
