@@ -11,6 +11,7 @@ import { Category, Subcategory } from "@/types/models";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import clsx from "clsx";
 import { Pencil } from "lucide-react";
+import { InfoBanner } from "@/components/ui/InfoBanner";
 
 export default function CategoriesPage() {
   const api = useApiClient();
@@ -186,6 +187,13 @@ export default function CategoriesPage() {
           </TabPanel>
 
           <TabPanel>
+            <InfoBanner
+              title="Справка"
+              message="Потерянные подкатегории – это подкатегории, родительская категория которых была удалена"
+              variant="info"
+              dismissible
+            />
+
             {lostSubcategories.length === 0 ? (
               <p className="text-gray-500 italic">Нет потерянных подкатегорий 🎉</p>
             ) : (
