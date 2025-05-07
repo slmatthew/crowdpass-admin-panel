@@ -41,7 +41,7 @@ export function SubcategoryModal({ open, onClose, onSubmit, initialData, mode, c
 
   return (
     <Dialog open={open} onClose={onClose} className="relative z-50">
-      <div className="fixed inset-0 bg-black/30" />
+      <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" aria-hidden="true" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <DialogPanel className="bg-white p-6 rounded-md shadow-lg w-full max-w-sm">
           <DialogTitle className="text-lg font-medium mb-4">
