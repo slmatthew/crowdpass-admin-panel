@@ -7,6 +7,7 @@ import dayjs from "dayjs";
 import { CalendarDays, MapPin, Ticket, Users } from "lucide-react";
 import { CardButton } from "@/components/ui/CardButton";
 import { useModals } from "@/context/ModalContext";
+import { BackButton } from "@/components/ui/BackButton";
 
 export default function EventPage() {
   const { id } = useParams();
@@ -34,6 +35,8 @@ export default function EventPage() {
 
   return (
     <div className="space-y-6">
+      <BackButton />
+
       {/* Обложка + Название */}
       <div className="bg-white rounded-xl shadow overflow-hidden">
         {event.posterUrl ? (

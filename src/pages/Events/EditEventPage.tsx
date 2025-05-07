@@ -4,6 +4,7 @@ import { Event } from "@/types/models/Event";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { BackButton } from "@/components/ui/BackButton";
 
 export default function EditEventPage() {
   const api = useApiClient();
@@ -47,6 +48,8 @@ export default function EditEventPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
+      <BackButton />
+
       <h1 className="text-2xl font-bold">Редактирование мероприятия</h1>
       <EventForm initialValues={initial!} onSubmit={handleSubmit} isSubmitting={saving} />
     </div>

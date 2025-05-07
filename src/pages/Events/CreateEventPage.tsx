@@ -4,6 +4,7 @@ import { EventForm, EventFormData } from "@/components/events/EventForm";
 import { Event } from "@/types/models/Event";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { BackButton } from "@/components/ui/BackButton";
 
 export default function CreateEventPage() {
   const api = useApiClient();
@@ -26,6 +27,8 @@ export default function CreateEventPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
+      <BackButton />
+
       <h1 className="text-2xl font-bold">Создать мероприятие</h1>
       <EventForm onSubmit={handleSubmit} isSubmitting={saving} />
     </div>
