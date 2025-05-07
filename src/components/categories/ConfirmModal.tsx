@@ -19,8 +19,8 @@ export function ConfirmModal({ open, onClose, onConfirm, title, description }: C
           {description && <p className="text-sm text-gray-600 mb-4">{description}</p>}
 
           <div className="flex justify-end gap-2">
-            <Button variant="ghost" onClick={onClose}>Отмена</Button>
-            <Button variant="destructive" onClick={onConfirm}>Удалить</Button>
+            <Button variant="secondary" size="sm" onClick={onClose}>Отмена</Button>
+            <Button variant="destructive" size="sm" onClick={onConfirm}>Удалить</Button>
           </div>
         </DialogPanel>
       </div>

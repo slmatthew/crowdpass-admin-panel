@@ -80,10 +80,10 @@ export function UserEditModal({ open, onClose, user, onUpdated }: Props) {
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="ghost" onClick={onClose}>
+            <Button size="sm" variant="secondary" onClick={onClose}>
               Отмена
             </Button>
-            <Button onClick={handleSave}>Сохранить</Button>
+            <Button size="sm" onClick={handleSave}>Сохранить</Button>
           </div>
         </DialogPanel>
       </div>

@@ -71,7 +71,7 @@ export default function UsersPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
         <h1 className="text-2xl font-bold">Пользователи</h1>
-        <Button onClick={refresh} isLoading={isRefetching}>
+        <Button onClick={refresh} isLoading={isRefetching} size="sm">
           🔄 Обновить
         </Button>
       </div>

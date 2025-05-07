@@ -46,8 +46,8 @@ export function OrganizerModal({ open, onClose, onSubmit, initialData }: Props) 
             </div>
 
             <div className="flex justify-end gap-2">
-              <Button variant="ghost" type="button" onClick={onClose}>Отмена</Button>
-              <Button type="submit" isLoading={form.formState.isSubmitting}>Сохранить</Button>
+              <Button variant="secondary" size="sm" type="button" onClick={onClose}>Отмена</Button>
+              <Button size="sm" type="submit" isLoading={form.formState.isSubmitting}>Сохранить</Button>
             </div>
           </form>
         </DialogPanel>

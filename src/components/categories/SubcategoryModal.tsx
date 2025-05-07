@@ -67,8 +67,8 @@ export function SubcategoryModal({ open, onClose, onSubmit, initialData, mode, c
             </div>
 
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="ghost" onClick={onClose}>Отмена</Button>
-              <Button type="submit" isLoading={form.formState.isSubmitting}>
+              <Button type="button" size="sm" variant="secondary" onClick={onClose}>Отмена</Button>
+              <Button type="submit" size="sm" isLoading={form.formState.isSubmitting}>
                 {mode === "create" ? "Создать" : "Сохранить"}
               </Button>
             </div>

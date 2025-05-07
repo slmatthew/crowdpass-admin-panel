@@ -18,7 +18,7 @@
   @apply border border-gray-300 text-gray-800 hover:bg-gray-50;
 }
 .btn-ghost {
-  @apply text-gray-700 hover:bg-gray-100;
+  @apply border border-gray-200 text-gray-700 hover:bg-gray-100;
 }
 .btn-destructive {
   @apply bg-red-500 text-white px-4 py-1.5 rounded-md text-sm hover:bg-red-600 transition;

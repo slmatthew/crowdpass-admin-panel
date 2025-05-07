@@ -87,10 +87,10 @@ export function PromoteModal({ open, onClose, user, onUpdated }: Props) {
           )}
 
           <div className="flex justify-end gap-2">
-            <Button variant="ghost" onClick={onClose}>
+            <Button size="sm" variant="secondary" onClick={onClose}>
               Отмена
             </Button>
-            <Button onClick={handleSubmit}>Назначить</Button>
+            <Button size="sm" onClick={handleSubmit}>Назначить</Button>
           </div>
         </DialogPanel>
       </div>
