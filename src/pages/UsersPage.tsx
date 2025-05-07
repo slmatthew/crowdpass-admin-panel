@@ -9,12 +9,14 @@ import { UserCard } from "@/components/users/UserCard";
 import { UserEditModal } from "@/components/users/UserEditModal";
 import { IdEditModal } from "@/components/users/IdEditModal";
 import { PromoteModal } from "@/components/users/PromoteModal";
+import { useDebounce } from "@/hooks/useDebounce";
 
 export default function UsersPage() {
   const api = useApiClient();
   const { role: currentRole } = useAuth();
 
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
@@ -29,10 +31,10 @@ export default function UsersPage() {
     isRefetching,
     refetch,
   } = useQuery({
-    queryKey: ["users", search, page],
+    queryKey: ["users", debouncedSearch, page],
     queryFn: async () => {
       const res = await api.get("/admin/users", {
-        params: { search, page, pageSize },
+        params: { search: debouncedSearch, page, pageSize },
       });
       return res.data;
     },
