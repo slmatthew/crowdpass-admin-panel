@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useApiClient } from "@/hooks/useApiClient";
 import { CategoryAccordion } from "@/components/categories/CategoryAccordion";
@@ -12,9 +12,11 @@ import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import clsx from "clsx";
 import { Pencil } from "lucide-react";
 import { InfoBanner } from "@/components/ui/InfoBanner";
+import { useSearchParams } from "react-router-dom";
 
 export default function CategoriesPage() {
   const api = useApiClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState<Subcategory | null>(null);
@@ -45,6 +47,36 @@ export default function CategoriesPage() {
   };
 
   const isRefetching = isRefetchingCtg || isRefetchingLost;
+
+  const focusCategoryId = Number(searchParams.get("categoryId"));
+  const focusSubcategoryId = Number(searchParams.get("subcategoryId"));
+
+  useEffect(() => {
+    if (!categories.length) return;
+  
+    if (focusCategoryId) {
+      const target = categories.find((c) => c.id === focusCategoryId);
+      if (target) {
+        setSearch(target.name);
+      }
+    }
+  
+    if (focusSubcategoryId) {
+      const targetCat = categories.find((c) =>
+        c.subcategories?.some((s) => s.id === focusSubcategoryId)
+      );
+    
+      const targetSub = targetCat?.subcategories?.find((s) => s.id === focusSubcategoryId);
+    
+      if (targetSub) {
+        setSearch(targetSub.name);
+      }
+    }
+  
+    searchParams.delete("categoryId");
+    searchParams.delete("subcategoryId");
+    setSearchParams(searchParams);
+  }, [categories]);  
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
