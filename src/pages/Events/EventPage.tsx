@@ -8,6 +8,30 @@ import { CalendarDays, MapPin, Ticket, Users } from "lucide-react";
 import { CardButton } from "@/components/ui/CardButton";
 import { useModals } from "@/context/ModalContext";
 import { BackButton } from "@/components/ui/BackButton";
+import { useState } from "react";
+import { TicketType } from "@/types/models";
+import toast from "react-hot-toast";
+import { Button } from "@/components/ui/Button";
+import { TicketTypeModal } from "@/components/events/TicketTypeModal";
+import { TicketTypeCard } from "@/components/events/TicketTypeCard";
+import { ConfirmModal } from "@/components/modals/ConfirmModal";
+
+interface Stats {
+  totalTickets: number;
+  availableTickets: number;
+  reservedTickets: number;
+  soldTickets: number;
+  usedTickets: number;
+}
+
+export interface TicketTypeExtended extends TicketType {
+  stats: Stats;
+}
+
+interface EventExtended extends Event {
+  ticketTypes: TicketTypeExtended[];
+  stats: Stats;
+}
 
 export default function EventPage() {
   const { id } = useParams();
@@ -15,7 +39,12 @@ export default function EventPage() {
   const { openModal } = useModals();
   const navigate = useNavigate();
 
-  const { data: event, isLoading } = useQuery<Event>({
+  const [ticketTypeModalOpen, setTicketTypeModalOpen] = useState(false);
+  const [deleteTypeModalOpen, setDeleteTypeModalOpen] = useState(false);
+  const [confirmDeleteTypeModalOpen, setConfirmDeleteTypeModalOpen] = useState(false);
+  const [selectedTicketType, setSelectedTicketType] = useState<TicketType | null>(null);
+
+  const { data: event, isLoading, refetch } = useQuery<EventExtended>({
     queryKey: ["event", id],
     queryFn: async () => {
       const res = await api.get(`admin/events/${id}/overview`);
@@ -24,14 +53,63 @@ export default function EventPage() {
     enabled: !!id,
   });
 
+  const openCreateTicketType = () => {
+    setSelectedTicketType(null);
+    setTicketTypeModalOpen(true);
+  };
+  
+  const openEditTicketType = (tt: TicketTypeExtended) => {
+    setSelectedTicketType(tt);
+    setTicketTypeModalOpen(true);
+  };
+  
+  const handleDelete = async (ticketTypeId: number, confirmed: boolean = false) => {
+    try {
+      await api.delete(`/admin/ticket-types/${ticketTypeId}`, {
+        params: confirmed ? { confirm: true } : {},
+      });
+
+      setDeleteTypeModalOpen(false);
+      setConfirmDeleteTypeModalOpen(false);
+      setSelectedTicketType(null);
+
+      toast.success("Тип билетов удалён");
+      refetch();
+    } catch (error: any) {
+      const status = error.response?.status;
+  
+      if (status === 409 && !confirmed) {
+        setDeleteTypeModalOpen(false);
+        setConfirmDeleteTypeModalOpen(true);
+      } else {
+        toast.error(error.response?.data?.message || "Ошибка при удалении");
+      }
+    }
+  };
+
+  const generateTickets = async (id: number) => {
+    try {
+      const res = await api.post(`/admin/ticket-types/${id}/issue`);
+      if(res.status === 200 || res.data.count === 0) {
+        toast.error("Все доступные билеты уже выпущены");
+      } else {
+        toast.success("Билеты выпущены");
+      }
+
+      refetch();
+    } catch(err) {
+      console.error(err);
+      toast.error("Произошла ошибка");
+    }
+  };
+
   if (isLoading || !event) return <p>Загрузка...</p>;
 
-  const totalTickets = event.ticketTypes.reduce((sum, type) => sum + type.tickets.length, 0);
-  const availableTickets = event.ticketTypes.reduce(
-    (sum, type) => sum + type.tickets.filter(t => t.status === "AVAILABLE").length,
-    0
-  );
-  const soldTickets = totalTickets - availableTickets;
+  const eventComing = new Date(event.endDate) > new Date();
+
+  const totalTickets = event.stats.totalTickets;
+  const availableTickets = event.stats.availableTickets;
+  const soldTickets = event.stats.soldTickets;
 
   return (
     <div className="space-y-6">
@@ -52,7 +130,7 @@ export default function EventPage() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:gap-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
         <CardButton className="bg-blue-500! text-white!" onClick={() => navigate(`/events/${event.id}/edit`)}>Редактировать</CardButton>
         <CardButton onClick={() => openModal("organizer", event.organizer)}>{event.organizer.name}</CardButton>
         <CardButton onClick={() => navigate(`/categories?categoryId=${event.category.id}`)}>{event.category.name}</CardButton>
@@ -107,26 +185,78 @@ export default function EventPage() {
 
       {/* Типы билетов */}
       <div>
-        <h2 className="text-lg font-semibold mb-2">Типы билетов</h2>
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-lg font-semibold">Типы билетов</h2>
+          {eventComing && (
+            <Button variant="secondary" size="sm" onClick={openCreateTicketType}>➕ Добавить</Button>
+          )}
+        </div>
+  
         {event.ticketTypes.length === 0 ? (
           <p className="text-gray-500">Нет типов билетов</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {event.ticketTypes.map((type) => {
-              const total = type.tickets.length;
-              const available = type.tickets.filter(t => t.status === "AVAILABLE").length;
-              return (
-                <Card key={type.id}>
-                  <h3 className="text-base font-semibold">{type.name}</h3>
-                  <p className="text-sm text-gray-600">Цена: {type.price}₽</p>
-                  <p className="text-sm text-gray-600">Всего: {total}</p>
-                  <p className="text-sm text-gray-600">Доступно: {available}</p>
-                </Card>
-              );
-            })}
+            {event.ticketTypes.map((type) => (
+              <TicketTypeCard
+                key={type.id}
+                tt={type}
+                eventComing={eventComing}
+                onEdit={() => openEditTicketType(type)}
+                onDelete={() => {
+                  setSelectedTicketType(type);
+                  setDeleteTypeModalOpen(true);
+                }}
+                onGenerate={(id) => generateTickets(id)}
+              />
+            ))}
           </div>
         )}
       </div>
+
+      <TicketTypeModal
+        open={ticketTypeModalOpen}
+        onClose={() => setTicketTypeModalOpen(false)}
+        initialData={selectedTicketType || undefined}
+        mode={selectedTicketType ? "edit" : "create"}
+        onSubmit={async (data) => {
+          try {
+            if (selectedTicketType) {
+              await api.patch(`/admin/ticket-types/${selectedTicketType.id}`, data);
+              toast.success("Тип билета обновлён");
+            } else {
+              await api.post(`/admin/ticket-types`, { ...data, eventId: event.id });
+              toast.success("Тип билета создан");
+            }
+            setTicketTypeModalOpen(false);
+            refetch();
+          } catch(err: any) {
+            console.error(err);
+
+            const errorMessage = err.response.data.message ?? null;
+            toast.error(errorMessage ?? 'Произошла ошибка');
+          }
+        }}
+      />
+
+      <ConfirmModal
+        open={deleteTypeModalOpen}
+        title={`Удалить тип билетов «${selectedTicketType?.name ?? 'unknown'}»?`}
+        onClose={() => {
+          setDeleteTypeModalOpen(false);
+          setSelectedTicketType(null);
+        }}
+        onConfirm={() => handleDelete(selectedTicketType?.id ?? 0)}
+      />
+      <ConfirmModal
+        open={confirmDeleteTypeModalOpen}
+        title={`Удалить тип билетов «${selectedTicketType?.name ?? 'unknown'}»?`}
+        description="БУДЬТЕ ВНИМАТЕЛЬНЫ! Удаление этого типа билетов приведет к отмене всех связанных с ним бронирований. Продолжайте удаление ТОЛЬКО если уверены, что это действительно необходимо"
+        onClose={() => {
+          setConfirmDeleteTypeModalOpen(false);
+          setSelectedTicketType(null);
+        }}
+        onConfirm={() => handleDelete(selectedTicketType?.id ?? 0, true)}
+      />
     </div>
   );
 }

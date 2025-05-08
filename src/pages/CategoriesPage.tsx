@@ -6,7 +6,7 @@ import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/Button";
 import { CategoryModal } from "@/components/categories/CategoryModal";
 import { SubcategoryModal } from "@/components/categories/SubcategoryModal";
-import { ConfirmModal } from "@/components/categories/ConfirmModal";
+import { ConfirmModal } from "@/components/modals/ConfirmModal";
 import { Category, Subcategory } from "@/types/models";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import clsx from "clsx";
