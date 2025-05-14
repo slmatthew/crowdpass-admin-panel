@@ -1,5 +1,5 @@
 import { useApiClient } from "@/hooks/useApiClient";
-import { EventForm, EventFormData } from "@/components/events/EventForm";
+import { EventForm, EventFormData, EventFormValues } from "@/components/events/EventForm";
 import { Event } from "@/types/models/Event";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -20,8 +20,8 @@ export default function EditEventPage() {
         name: event.name,
         description: event.description,
         location: event.location,
-        startDate: new Date(event.startDate),
-        endDate: new Date(event.endDate),
+        startDate: event.startDate,
+        endDate: event.endDate,
         organizerId: String(event.organizerId),
         categoryId: String(event.categoryId),
         subcategoryId: String(event.subcategoryId),
@@ -31,7 +31,7 @@ export default function EditEventPage() {
     })();
   }, [id]);
 
-  const handleSubmit = async (data: EventFormData) => {
+  const handleSubmit = async (data: EventFormValues) => {
     try {
       setSaving(true);
       await api.patch(`admin/events/${id}`, data);
@@ -51,7 +51,11 @@ export default function EditEventPage() {
       <BackButton />
 
       <h1 className="text-2xl font-bold">Редактирование мероприятия</h1>
-      <EventForm initialValues={initial!} onSubmit={handleSubmit} isSubmitting={saving} />
+      <EventForm initialValues={{
+        ...initial!,
+        startDate: initial?.startDate ? new Date(initial!.startDate).toISOString().slice(0, 16) : undefined,
+        endDate: initial?.endDate ? new Date(initial!.endDate).toISOString().slice(0, 16) : undefined,
+      }} onSubmit={handleSubmit} isSubmitting={saving} />
     </div>
   );
 }

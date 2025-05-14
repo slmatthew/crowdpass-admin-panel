@@ -13,18 +13,22 @@ export const eventSchema = z.object({
   name: z.string().min(3),
   description: z.string().min(10),
   location: z.string().min(2),
-  startDate: z.preprocess((val) => new Date(String(val)), z.date()),
-  endDate: z.preprocess((val) => new Date(String(val)), z.date()),
+  startDate: z.string().min(1, "Дата обязательна"),
+  endDate: z.string().min(1, "Дата обязательна"),
   organizerId: z.string().min(1),
   categoryId: z.string().min(1),
   subcategoryId: z.string().min(1),
 });
 
 export type EventFormData = z.infer<typeof eventSchema>;
+export type EventFormValues = Omit<EventFormData, 'startDate' | 'endDate'> & {
+  startDate: Date;
+  endDate: Date;
+};
 
 interface Props {
   initialValues?: Partial<EventFormData>;
-  onSubmit: (data: EventFormData) => Promise<void>;
+  onSubmit: (data: EventFormValues) => Promise<void>;
   isSubmitting: boolean;
 }
 
@@ -48,6 +52,16 @@ export function EventForm({ initialValues, onSubmit, isSubmitting }: Props) {
   const [organizers, setOrganizers] = useState<any[]>([]);
 
   const selectedCategoryId = watch("categoryId");
+
+  const handleValidSubmit = async (data: EventFormData) => {
+    const parsed = {
+      ...data,
+      startDate: new Date(data.startDate),
+      endDate: new Date(data.endDate),
+    };
+
+    await onSubmit(parsed);
+  };
 
   useUnsavedChangesWarning(isDirty);
 
@@ -93,19 +107,20 @@ export function EventForm({ initialValues, onSubmit, isSubmitting }: Props) {
     reset({
       ...initialValues,
       startDate: initialValues.startDate
-        ? toInputDatetimeLocal(initialValues.startDate)
+        ? toInputDatetimeLocal(new Date(initialValues.startDate))
         : undefined,
       endDate: initialValues.endDate
-        ? toInputDatetimeLocal(initialValues.endDate)
+        ? toInputDatetimeLocal(new Date(initialValues.endDate))
         : undefined,
       organizerId: initialValues.organizerId ?? "",
       categoryId: initialValues.categoryId ?? "",
       subcategoryId: initialValues.subcategoryId ?? "",
     });
+
   }, [initialValues, categories, organizers, reset]);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(handleValidSubmit)} className="space-y-4">
       <input {...register("name")} className="input w-full" placeholder="Название" />
       {errors.name && <p className="text-red-500">{errors.name.message}</p>}
 
