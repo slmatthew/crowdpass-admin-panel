@@ -76,7 +76,7 @@ export default function BookingsPage() {
       await refetch();
 
       toast.success("Статус брони обновлен");
-    } catch (err) {
+    } catch (err: any) {
       console.error("[status update]", err);
       toast.error(err.response.data.message ?? "Ошибка при обновлении статуса");
     } finally {
