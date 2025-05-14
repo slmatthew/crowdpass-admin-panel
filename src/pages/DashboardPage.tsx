@@ -1,5 +1,4 @@
 import { useDashboardSummary } from "@/hooks/useDashboardSummary";
-import { useIsMobile } from "@/hooks/useIsMobile";
 import {
 	Ticket,
 	Users,
@@ -9,7 +8,6 @@ import {
 } from "lucide-react";
 
 export default function DashboardPage() {
-	const isMobile = useIsMobile();
 	const { data, isLoading } = useDashboardSummary();
 
 	if (isLoading) {
