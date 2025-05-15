@@ -4,6 +4,7 @@ import { Event } from "./Event";
 export interface Category {
   id: number;
   name: string;
-  subcategories: Subcategory[];
-  events: Event[];
+  isDeleted: boolean;
+  subcategories?: Subcategory[];
+  events?: Event[];
 }

@@ -93,10 +93,15 @@ function SidebarNav({
     <>
       <nav className="flex flex-col gap-4">
         <SidebarLink to="/dashboard" label="Главная" onClick={onNavigate} />
-        <SidebarLink to="/events" label="Мероприятия" onClick={onNavigate} />
-        <SidebarLink to="/tickets" label="Билеты" onClick={onNavigate} />
         <SidebarLink to="/bookings" label="Бронирования" onClick={onNavigate} />
+        <SidebarLink to="/events" label="Мероприятия" onClick={onNavigate} />
+        <RoleAccess allow={['MANAGER']}>
+          <SidebarLink to="/organizers/me" label="Организатор" onClick={onNavigate} />
+        </RoleAccess>
         <RoleAccess allow={['ROOT', 'ADMIN']}>
+          <SidebarLink to="/organizers" label="Организаторы" onClick={onNavigate} />
+          <SidebarLink to="/categories" label="Категории" onClick={onNavigate} />
+          <SidebarLink to="/users" label="Пользователи" onClick={onNavigate} />
           <SidebarLink to="/logs" label="Логи" onClick={onNavigate} />
         </RoleAccess>
       </nav>

@@ -4,9 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useApiClient } from "@/hooks/useApiClient";
 import { Booking } from "@/types/models/Booking";
 import { Pagination } from "@/components/Pagination";
-import { BookingModal } from "@/components/BookingModal";
+import { BookingEditModal } from "@/components/bookings/BookingEditModal";
 import toast from "react-hot-toast";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { useModals } from "@/context/ModalContext";
 
 interface BookingFilters {
   search: string;
@@ -29,6 +30,7 @@ export default function BookingsPage() {
   const [searchId, setSearchId] = useState("");
   const [searchedBooking, setSearchedBooking] = useState<Booking | null>(null);
   const isMobile = useIsMobile(768);
+  const { openModal } = useModals();
 
   const filters = useMemo<BookingFilters>(() => ({
     search: "",
@@ -74,7 +76,7 @@ export default function BookingsPage() {
       await refetch();
 
       toast.success("Статус брони обновлен");
-    } catch (err) {
+    } catch (err: any) {
       console.error("[status update]", err);
       toast.error(err.response.data.message ?? "Ошибка при обновлении статуса");
     } finally {
@@ -125,7 +127,7 @@ export default function BookingsPage() {
 
       {/* Модалка по ID */}
       {searchedBooking && (
-        <BookingModal
+        <BookingEditModal
           booking={searchedBooking}
           onClose={() => setSearchedBooking(null)}
           isUpdating={updatingId === searchedBooking.id}
@@ -165,7 +167,14 @@ export default function BookingsPage() {
                 <>
                   <tr key={b.id} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                     <td className="px-4 py-2">{b.id}</td>
-                    <td className="px-4 py-2">{b.user.firstName} {b.user.lastName}</td>
+                    <td className="px-4 py-2">
+                      <span
+                        className="text-blue-500 hover:underline hover:cursor-pointer"
+                        onClick={() => openModal("user", b.user)}
+                      >
+                        {b.user.firstName} {b.user.lastName}
+                      </span>
+                    </td>
                     <td className="px-4 py-2">{b.user.email ?? "—"}</td>
                     <td className="px-4 py-2">{b.bookingTickets[0]?.ticket.ticketType.event.name ?? "—"}</td>
                     <td className="px-4 py-2">{b.bookingTickets.length}</td>
