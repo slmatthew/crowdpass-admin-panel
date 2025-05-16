@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { appConfig } from "../config/appConfig";
 
 export function useApiClient() {
-  const { token, logout } = useAuth();
+  const { token, refreshTokens, logout } = useAuth();
 
   const instance = axios.create({
     baseURL: appConfig.apiBaseUrl,
@@ -25,11 +25,29 @@ export function useApiClient() {
 
   instance.interceptors.response.use(
     (response) => response,
-    (error) => {
-      if (error.response?.status === 401) {
-        logout();
-        window.location.href = "/login";
+    async (error) => {
+      const originalRequest = error.config;
+      
+      if (error.response?.status === 401 && !originalRequest._retry) {
+        originalRequest._retry = true;
+
+        try {
+          await refreshTokens();
+          
+          const newToken = localStorage.getItem("admin_token");
+          if (newToken) {
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            return instance(originalRequest);
+          } else {
+            logout();
+            window.location.href = "/login";
+          }
+        } catch(refreshError) {
+          logout();
+          window.location.href = "/login";
+        }
       }
+
       return Promise.reject(error);
     }
   );
