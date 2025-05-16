@@ -16,7 +16,7 @@ export default function CreateEventPage() {
       setSaving(true);
       const created = await api.post<Event>("admin/events", data).then((res) => res.data);
       toast.success("Мероприятие создано");
-      navigate(`/events/${created.id}/edit`);
+      navigate(`/events/${created.id}`);
     } catch(err) {
       console.error(err);
       toast.error("Ошибка при создании");
