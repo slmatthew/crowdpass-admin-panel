@@ -9,10 +9,11 @@ export default function TelegramCallbackPage() {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get("token");
+    const accessToken = urlParams.get("accessToken");
+    const refreshToken = urlParams.get("refreshToken");
 
-    if (token) {
-      login(token);
+    if (accessToken && refreshToken) {
+      login(accessToken, refreshToken);
       navigate("/dashboard");
     } else {
       setError("Не удалось авторизоваться через Telegram.");

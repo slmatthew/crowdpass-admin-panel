@@ -31,9 +31,9 @@ export default function VkCallbackPage() {
             state,
           });
 
-          const { token } = response.data;
-          if (token) {
-            login(token);
+          const { accessToken, refreshToken } = response.data;
+          if (accessToken && refreshToken) {
+            login(accessToken, refreshToken);
             navigate("/dashboard");
           } else {
             setError("Не удалось авторизоваться через VK ID.");

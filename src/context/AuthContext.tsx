@@ -6,30 +6,32 @@ import {
   ReactNode,
 } from "react";
 import { User, Role } from "@/types/models/";
-import { fetchTyped } from "@/lib/typedApiClient";
+import { fetchTyped, postTyped } from "@/lib/typedApiClient";
 
 interface AuthContextType {
   token: string | null;
   user: User | null;
   isAuthenticated: boolean;
-  login: (token: string) => void;
+  login: (newAccessToken: string, newRefreshToken: string) => void;
   logout: () => void;
   refreshUser: () => Promise<void>;
+  refreshTokens: () => Promise<void>;
   role: Role | null;
   hasRole: (role: Role) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const LS_TOKEN = "admin_token";
+const LS_REFRESH_TOKEN = "admin_refresh_token";
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(
-    localStorage.getItem("admin_token")
-  );
+  const [token, setToken] = useState<string | null>(localStorage.getItem(LS_TOKEN));
+  const [refreshToken, setRefreshToken] = useState<string | null>(localStorage.getItem(LS_REFRESH_TOKEN));
   const [user, setUser] = useState<User | null>(null);
 
   const isAuthenticated = !!token;
 
-  // Загружаем user при наличии токена
   useEffect(() => {
     if (token) {
       refreshUser();
@@ -43,20 +45,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(res);
     } catch (err: any) {
       console.error("Ошибка при загрузке пользователя:", err);
-      if (err?.response?.status === 401) {
-        logout();
+      if(err?.response?.status === 401) {
+        if(refreshToken) {
+          console.info('Trying to refresh token...');
+          await refreshTokens();
+        } else {
+          logout();
+        }
       }
     }
-  };  
+  };
 
-  const login = (newToken: string) => {
-    localStorage.setItem("admin_token", newToken);
-    setToken(newToken);
+  const refreshTokens = async () => {
+    if (!refreshToken) return;
+
+    try {
+      const res = await postTyped<{ accessToken: string, refreshToken: string }>(token ?? '', "auth/refresh", {
+        refreshToken
+      });
+
+      if (res.accessToken && res.refreshToken) {
+        localStorage.setItem(LS_TOKEN, res.accessToken);
+        localStorage.setItem(LS_REFRESH_TOKEN, res.refreshToken);
+        setToken(res.accessToken);
+        setRefreshToken(res.refreshToken);
+        refreshUser();
+      } else {
+        logout();
+      }
+    } catch (err) {
+      console.error("Ошибка при обновлении токенов:", err);
+      logout();
+    }
+  };
+
+  const login = (newAccessToken: string, newRefreshToken: string) => {
+    localStorage.setItem(LS_TOKEN, newAccessToken);
+    localStorage.setItem(LS_REFRESH_TOKEN, newRefreshToken);
+    setToken(newAccessToken);
+    setRefreshToken(newRefreshToken);
+    refreshUser();
   };
 
   const logout = () => {
-    localStorage.removeItem("admin_token");
+    localStorage.removeItem(LS_TOKEN);
+    localStorage.removeItem(LS_REFRESH_TOKEN);
     setToken(null);
+    setRefreshToken(null);
     setUser(null);
   };
 
@@ -68,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ token, user, isAuthenticated, role, hasRole, login, logout, refreshUser }}
+      value={{ token, user, isAuthenticated, role, hasRole, login, logout, refreshUser, refreshTokens }}
     >
       {children}
     </AuthContext.Provider>
