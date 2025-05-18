@@ -28,7 +28,7 @@ export type EventFormValues = Omit<EventFormData, 'startDate' | 'endDate'> & {
 
 interface Props {
   initialValues?: Partial<EventFormData>;
-  onSubmit: (data: EventFormValues) => Promise<void>;
+  onSubmit: (data: EventFormData) => Promise<void>;
   isSubmitting: boolean;
 }
 
@@ -53,11 +53,25 @@ export function EventForm({ initialValues, onSubmit, isSubmitting }: Props) {
 
   const selectedCategoryId = watch("categoryId");
 
+  const toISOStringWithOffset = (input: string) => {
+    const date = new Date(input);
+    return date.toISOString();
+  };
+
+  const toInputDatetimeLocal = (isoDateString: string) => {
+    const date = new Date(isoDateString);
+    const tzOffset = date.getTimezoneOffset() * 60000;
+    const localDate = new Date(date.getTime() - tzOffset);
+    
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    return `${localDate.getFullYear()}-${pad(localDate.getMonth() + 1)}-${pad(localDate.getDate())}T${pad(localDate.getHours())}:${pad(localDate.getMinutes())}`;
+  };
+
   const handleValidSubmit = async (data: EventFormData) => {
     const parsed = {
       ...data,
-      startDate: new Date(data.startDate),
-      endDate: new Date(data.endDate),
+      startDate: toISOStringWithOffset(data.startDate),
+      endDate: toISOStringWithOffset(data.endDate),
     };
 
     await onSubmit(parsed);
@@ -96,21 +110,15 @@ export function EventForm({ initialValues, onSubmit, isSubmitting }: Props) {
       !initialValues ||
       categories.length === 0 ||
       organizers.length === 0
-    )
-      return;
-
-    const toInputDatetimeLocal = (date: Date) => {
-      const pad = (n: number) => n.toString().padStart(2, "0");
-      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-    };
+    ) return;
 
     reset({
       ...initialValues,
       startDate: initialValues.startDate
-        ? toInputDatetimeLocal(new Date(initialValues.startDate))
+        ? toInputDatetimeLocal(initialValues.startDate)
         : undefined,
       endDate: initialValues.endDate
-        ? toInputDatetimeLocal(new Date(initialValues.endDate))
+        ? toInputDatetimeLocal(initialValues.endDate)
         : undefined,
       organizerId: initialValues.organizerId ?? "",
       categoryId: initialValues.categoryId ?? "",

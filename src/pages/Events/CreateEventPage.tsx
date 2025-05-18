@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useApiClient } from "@/hooks/useApiClient";
-import { EventForm, EventFormValues } from "@/components/events/EventForm";
+import { EventForm, EventFormData } from "@/components/events/EventForm";
 import { Event } from "@/types/models/Event";
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -11,7 +11,7 @@ export default function CreateEventPage() {
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
 
-  const handleSubmit = async (data: EventFormValues) => {
+  const handleSubmit = async (data: EventFormData) => {
     try {
       setSaving(true);
       const created = await api.post<Event>("admin/events", data).then((res) => res.data);

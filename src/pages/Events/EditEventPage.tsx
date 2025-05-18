@@ -1,5 +1,5 @@
 import { useApiClient } from "@/hooks/useApiClient";
-import { EventForm, EventFormData, EventFormValues } from "@/components/events/EventForm";
+import { EventForm, EventFormData } from "@/components/events/EventForm";
 import { Event } from "@/types/models/Event";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -29,9 +29,9 @@ export default function EditEventPage() {
 
       setLoading(false);
     })();
-  }, [id]);
+  }, [id, setSaving]);
 
-  const handleSubmit = async (data: EventFormValues) => {
+  const handleSubmit = async (data: EventFormData) => {
     try {
       setSaving(true);
       await api.patch(`admin/events/${id}`, data);
