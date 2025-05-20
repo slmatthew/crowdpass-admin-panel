@@ -53,7 +53,10 @@ export default function BookingsPage() {
   } = useQuery<BookingsResponse>({
     queryKey: ["bookings", filters],
     queryFn: async () => {
-      if(isMobile) return;
+      if(isMobile) return {
+        bookings: [],
+        total: 0
+      };
 
       const res = await api.get("admin/bookings", {
         params: {
