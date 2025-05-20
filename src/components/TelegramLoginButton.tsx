@@ -1,3 +1,4 @@
+import { appConfig } from "@/config/appConfig";
 import { useEffect, useRef } from "react";
 
 export default function TelegramLoginButton() {
@@ -6,15 +7,13 @@ export default function TelegramLoginButton() {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Очищаем контейнер
     containerRef.current.innerHTML = "";
 
-    // Создаем скрипт Telegram
     const script = document.createElement("script");
-    script.src = "https://telegram.org/js/telegram-widget.js?22";
-    script.setAttribute("data-telegram-login", "CrowdPassBot"); // например: ticket_admin_bot
+    script.src = appConfig.telegram.widget_url;
+    script.setAttribute("data-telegram-login", appConfig.telegram.bot_username);
     script.setAttribute("data-size", "large");
-    script.setAttribute("data-auth-url", "https://crowdpass-api.slmatthew.dev/api/auth/telegram/callback");
+    script.setAttribute("data-auth-url", appConfig.telegram.auth_url);
     script.setAttribute("data-request-access", "write");
     script.setAttribute("data-userpic", "true");
     script.async = true;
