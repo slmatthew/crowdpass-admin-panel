@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { useApiClient } from "@/hooks/useApiClient";
+import { Header } from "@/components/Header/Header";
 
 const PER_PAGE = 6;
 
@@ -68,24 +69,22 @@ export default function EventsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold">Мероприятия</h1>
+      <Header>
+        <Header.Text>Мероприятия</Header.Text>
 
-        <div>
-          <Link to="/events/create" className="btn-primary">
-            + Создать
-          </Link>
-          <button
-            className={`btn-secondary ml-2 px-4 py-2 rounded ${
-              isLoading ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-            disabled={isLoading}
-            onClick={() => queryClient.invalidateQueries({ queryKey: ["events"] })}
-          >
-            {isLoading ? "Обновляется..." : "🔄 Обновить"}
-          </button>
-        </div>
-      </div>
+        <Header.Button
+          variant="primary"
+        >
+          <Link to="/events/create" className="w-full">➕ Создать</Link>
+        </Header.Button>
+        <Header.Button
+          variant="ghost"
+          isLoading={isLoading}
+          onClick={() => queryClient.invalidateQueries({ queryKey: ["events"] })}
+        >
+          {isLoading ? "Обновляется..." : "🔄 Обновить"}
+        </Header.Button>
+      </Header>
 
 
       {events && (

@@ -7,8 +7,7 @@ import { OrganizerModal } from "@/components/organizers/OrganizerModal";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { AxiosError } from "axios";
-import { Button } from "@/components/ui/Button";
-import { Plus } from "lucide-react";
+import { Header } from "@/components/Header/Header";
 
 export default function OrganizersPage() {
   const api = useApiClient();
@@ -43,29 +42,23 @@ export default function OrganizersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold">Организаторы</h1>
+      <Header>
+        <Header.Text>Организаторы</Header.Text>
 
-        <div>
-          <Button
-            variant="ghost"
-            size="sm"
-            leftIcon={<Plus size={14} />}
-            onClick={() => setModalOpen(true)}
-          >
-            Создать
-          </Button>
-          <Button
-            variant="primary"
-            size="sm"
-            isLoading={isLoading}
-            onClick={() => refetch()}
-            className="ml-2"
-          >
-            {isLoading ? 'Обновляется...' : '🔄 Обновить'}
-          </Button>
-        </div>
-      </div>
+        <Header.Button
+          variant="primary"
+          onClick={() => setModalOpen(true)}
+        >
+          ➕ Создать
+        </Header.Button>
+        <Header.Button
+          variant="ghost"
+          isLoading={isLoading}
+          onClick={() => refetch()}
+        >
+          {isLoading ? 'Обновляется...' : '🔄 Обновить'}
+        </Header.Button>
+      </Header>
 
       {isLoading ? (
         <p>Загрузка...</p>

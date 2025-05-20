@@ -13,6 +13,7 @@ import clsx from "clsx";
 import { Pencil } from "lucide-react";
 import { InfoBanner } from "@/components/ui/InfoBanner";
 import { useSearchParams } from "react-router-dom";
+import { Header } from "@/components/Header/Header";
 
 export default function CategoriesPage() {
   const api = useApiClient();
@@ -143,23 +144,26 @@ export default function CategoriesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
-        <h1 className="text-2xl font-bold">Категории и подкатегории</h1>
-        <div>
-          <Button size="sm" onClick={() => refetch()} isLoading={isRefetching}>🔄 Обновить</Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => {
-              setSelectedCategory(null);
-              setCategoryModalOpen(true);
-            }}
-            className="ml-2"
-          >
-            ➕ Добавить категорию
-          </Button>
-        </div>
-      </div>
+      <Header>
+        <Header.Text>Категории и подкатегории</Header.Text>
+
+        <Header.Button
+          variant="primary"
+          onClick={() => {
+            setSelectedCategory(null);
+            setCategoryModalOpen(true);
+          }}
+        >
+          ➕ Добавить категорию
+        </Header.Button>
+        <Header.Button
+          variant="ghost"
+          onClick={() => refetch()}
+          isLoading={isRefetching}
+        >
+          {isLoading ? 'Обновляется...' : '🔄 Обновить'}
+        </Header.Button>
+      </Header>
 
       <input
         type="text"

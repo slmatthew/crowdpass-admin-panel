@@ -10,6 +10,7 @@ import { UserEditModal } from "@/components/users/UserEditModal";
 import { IdEditModal } from "@/components/users/IdEditModal";
 import { PromoteModal } from "@/components/users/PromoteModal";
 import { useDebounce } from "@/hooks/useDebounce";
+import { Header } from "@/components/Header/Header";
 
 export default function UsersPage() {
   const api = useApiClient();
@@ -69,12 +70,13 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-        <h1 className="text-2xl font-bold">Пользователи</h1>
-        <Button onClick={refresh} isLoading={isRefetching} size="sm">
-          🔄 Обновить
-        </Button>
-      </div>
+      <Header>
+        <Header.Text>Пользователи</Header.Text>
+
+        <Header.Button variant="ghost" onClick={refresh} isLoading={isRefetching}>
+          {isLoading ? 'Обновляется...' : '🔄 Обновить'}
+        </Header.Button>
+      </Header>
 
       <input
         type="text"
