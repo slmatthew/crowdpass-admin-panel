@@ -3,6 +3,11 @@ import { ActionLog } from "@/types/models/ActionLog";
 import { useApiClient } from "@/hooks/useApiClient";
 import { actionLogLabels } from "@/constants/actionLogLabels";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { Button } from "@/components/ui/Button";
+import { useModals } from "@/context/ModalContext";
+
+import { Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/react";
+import { ChevronDown } from "lucide-react";
 
 export default function LogsPage() {
   const isMobile = useIsMobile();
@@ -12,6 +17,8 @@ export default function LogsPage() {
 
   const api = useApiClient();
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const { openModal } = useModals();
 
   const [logs, setLogs] = useState<ActionLog[]>([]);
   const [total, setTotal] = useState(0);
@@ -232,15 +239,27 @@ export default function LogsPage() {
               <tr key={log.id} className="border-b">
                 <td className="p-2">{new Date(log.createdAt).toLocaleString()}</td>
                 <td className="p-2">
-                  {log.actor.firstName} {log.actor.lastName} (ID: {log.actor.id})
+                  <Button variant="outline" size="sm" onClick={() => openModal('user', log.actor)}>
+                    {log.actor.firstName} {log.actor.lastName} (ID: {log.actor.id})
+                  </Button>
                 </td>
                 <td className="p-2">{actionLogLabels[log.action] ?? log.action}</td>
                 <td className="p-2">{log.targetType}</td>
                 <td className="p-2">{log.targetId}</td>
                 <td className="p-2">
-                  <pre className="max-w-[400px] whitespace-pre-wrap break-words text-xs text-gray-600 bg-gray-50 p-2 rounded">
-                    {JSON.stringify(log.metadata, null, 2)}
-                  </pre>
+                  <Disclosure as="div" defaultOpen={false}>
+                    <DisclosureButton className="group flex w-full items-center justify-between">
+                      <span>
+                        Мета-данные
+                      </span>
+                      <ChevronDown className="size-5 fill-white/60 group-data-hover:fill-white/50 group-data-open:rotate-180" />
+                    </DisclosureButton>
+                    <DisclosurePanel>
+                      <pre className="max-w-[400px] whitespace-pre-wrap break-words text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                        {JSON.stringify(log.metadata, null, 2)}
+                      </pre>
+                    </DisclosurePanel>
+                  </Disclosure>
                 </td>
               </tr>
             ))}
