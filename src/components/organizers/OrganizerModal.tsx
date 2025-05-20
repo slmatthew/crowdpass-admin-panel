@@ -13,13 +13,14 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 interface Props {
+  mode?: 'create' | 'edit';
   open: boolean;
   onClose: () => void;
   onSubmit: (data: FormData) => Promise<void>;
   initialData?: Partial<FormData>;
 }
 
-export function OrganizerModal({ open, onClose, onSubmit, initialData }: Props) {
+export function OrganizerModal({ mode = 'edit', open, onClose, onSubmit, initialData }: Props) {
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: initialData || { name: "", description: "", contacts: "" },
@@ -30,7 +31,7 @@ export function OrganizerModal({ open, onClose, onSubmit, initialData }: Props) 
       <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" aria-hidden="true" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <DialogPanel className="bg-white p-6 rounded-md shadow-lg w-full max-w-md">
-          <DialogTitle className="text-lg font-medium mb-4">Редактирование организатора</DialogTitle>
+          <DialogTitle className="text-lg font-medium mb-4">{mode === 'create' ? 'Создание' : 'Редактирование'} организатора</DialogTitle>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-1">Название</label>
