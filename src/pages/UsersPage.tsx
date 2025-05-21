@@ -11,6 +11,7 @@ import { IdEditModal } from "@/components/users/IdEditModal";
 import { PromoteModal } from "@/components/users/PromoteModal";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Header } from "@/components/Header/Header";
+import { AxiosError } from "axios";
 
 export default function UsersPage() {
   const api = useApiClient();
@@ -63,9 +64,21 @@ export default function UsersPage() {
   };
 
   const handleDemote = async (user: User) => {
-    await api.delete(`/admin/users/${user.id}/remove-admin`);
-    toast.success("Права администратора сняты");
-    refresh();
+    try {
+      await api.delete(`/admin/users/${user.id}/remove-admin`);
+      toast.success("Права администратора сняты");
+    } catch(err: any) {
+      console.error(err);
+      if(err instanceof AxiosError) {
+        if(err.response?.data.message) {
+          return toast.error(err.response.data.message);
+        }
+      }
+
+      toast.error('Произошла ошибка');
+    } finally {
+      refresh();
+    }
   };
 
   return (
@@ -98,10 +111,10 @@ export default function UsersPage() {
               key={user.id}
               user={user}
               currentAdminRole={currentRole ?? "ADMIN"}
-              onEdit={() => handleEdit(user)}
-              onIdEdit={() => handleIdEdit(user)}
-              onPromote={() => handlePromote(user)}
-              onDemote={() => handleDemote(user)}
+              onEdit={(user) => handleEdit(user)}
+              onIdEdit={(user) => handleIdEdit(user)}
+              onPromote={(user) => handlePromote(user)}
+              onDemote={(user) => handleDemote(user)}
             />
           ))}
         </div>

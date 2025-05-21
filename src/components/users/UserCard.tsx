@@ -19,12 +19,20 @@ export function UserCard({ user, currentAdminRole, onEdit, onIdEdit, onPromote, 
     currentAdminRole === "ROOT" || (currentAdminRole === "ADMIN" && user.admin?.role !== "ROOT");
 
   return (
-    <Card className="">
-      <div>
-        <div className="font-semibold">
-          {fullName || "Без имени"}
-          <span className="text-xs text-gray-400">&nbsp;#{user.id}</span>  
-        </div>
+    <Card className="relative p-4">
+      <div className="absolute top-2 right-2">
+        {isAdmin && (
+          <span className="px-2 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-medium">
+            {user.admin?.role}
+          </span>
+        )}
+      </div>
+
+      <div className="text-lg font-semibold">
+        {fullName || "Без имени"} <span className="text-gray-400 text-sm">#{user.id}</span>
+      </div>
+
+      <div className="mt-2 space-y-1 text-sm text-gray-600">
         <div className="text-xs text-gray-400">
           Email: {user.email || "—"}, Телефон: {user.phone || "—"}
         </div>
@@ -34,11 +42,10 @@ export function UserCard({ user, currentAdminRole, onEdit, onIdEdit, onPromote, 
         </div>
       </div>
 
-      <div className="flex flex-col items-end gap-2">
+      <div className="mt-4 flex flex-col sm:flex-row sm:justify-between gap-2">
         <div className="text-sm text-gray-400">
           {isAdmin ? (
             <>
-              <span className="mr-4">{user.admin?.role}</span>
               {canModify && (
                 <Button variant="destructive" size="sm" onClick={() => onDemote(user)}>
                   Снять права
@@ -54,10 +61,15 @@ export function UserCard({ user, currentAdminRole, onEdit, onIdEdit, onPromote, 
           )}
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" size="sm" onClick={() => onEdit(user)}>
+          <Button variant="ghost" size="sm" onClick={() => onEdit(user)}>
             ✏️ Редактировать
           </Button>
-          <Button variant="secondary" size="sm" onClick={() => onIdEdit(user)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onIdEdit(user)}
+            disabled={(!!user.vkId && !user.telegramId) || (!user.vkId && !!user.telegramId)}
+          >
             🆔 ID
           </Button>
         </div>

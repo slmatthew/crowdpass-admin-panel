@@ -1,9 +1,10 @@
-import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
-import { useState } from "react";
+import { Checkbox, Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
+import { useEffect, useState } from "react";
 import { User } from "@/types/models/User";
 import { Button } from "@/components/ui/Button";
 import { useApiClient } from "@/hooks/useApiClient";
 import { toast } from "react-hot-toast";
+import { AxiosError } from "axios";
 
 interface Props {
   open: boolean;
@@ -14,23 +15,58 @@ interface Props {
 
 export function UserEditModal({ open, onClose, user, onUpdated }: Props) {
   const api = useApiClient();
-  const [firstName, setFirstName] = useState(user?.firstName || "");
-  const [lastName, setLastName] = useState(user?.lastName || "");
-  const [email, setEmail] = useState(user?.email || "");
-  const [phone, setPhone] = useState(user?.phone || "");
+  const [init, setInit] = useState<boolean>(false);
+  const [firstName, setFirstName] = useState<string>(user?.firstName || "");
+  const [lastName, setLastName] = useState<string>(user?.lastName || "");
+  const [email, setEmail] = useState<string>(user?.email || "");
+  const [phone, setPhone] = useState<string>(user?.phone || "");
+  const [removePhone, setRemovePhone] = useState<boolean>(false);
 
   const handleSave = async () => {
     if (!user) return;
-    await api.put(`/admin/users/${user.id}`, {
-      firstName,
-      lastName,
-      email,
-      phone,
-    });
-    toast.success("Данные пользователя обновлены");
-    onUpdated();
-    onClose();
+
+    try {
+      await api.put(`/admin/users/${user.id}`, {
+        firstName,
+        lastName,
+        email,
+        phone,
+        removePhone,
+      });
+      toast.success("Данные пользователя обновлены");
+      onUpdated();
+
+      setFirstName('');
+      setLastName('');
+      setEmail('');
+      setPhone('');
+      setRemovePhone(false);
+      setInit(false);
+
+      onClose();
+    } catch(err) {
+      console.error(err);
+      let message = 'Произошла ошибка';
+      if(err instanceof AxiosError) {
+        if(err.response?.data.message) {
+          message = `Произошла ошибка: ${err.response.data.message}`
+        }
+      }
+
+      toast.error(message);
+    }
   };
+
+  useEffect(() => {
+    if(!init && user) {
+      setFirstName(user.firstName);
+      setLastName(user.lastName);
+      setEmail(user.email ?? '');
+      setPhone(user.phone ?? '');
+
+      setInit(true);
+    }
+  }, [user]);
 
   return (
     <Dialog open={open} onClose={onClose} className="relative z-50">
@@ -73,11 +109,31 @@ export function UserEditModal({ open, onClose, user, onUpdated }: Props) {
             <label className="block text-sm font-medium mb-1">Телефон</label>
             <input
               type="tel"
-              className="input w-full"
+              className="input w-full disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
+              placeholder="Не указан"
+              disabled={true}
             />
           </div>
+
+          {phone && phone.length > 0 && (
+            <div className="flex flex-nowrap">
+              <label className="block text-sm font-medium mb-1">
+                Удалить телефон
+              </label>
+              <Checkbox
+                checked={removePhone}
+                onChange={setRemovePhone}
+                className="group block size-4 rounded border bg-white data-checked:bg-blue-500 ml-2"
+              >
+                {/* Checkmark icon */}
+                <svg className="stroke-white opacity-0 group-data-checked:opacity-100" viewBox="0 0 14 14" fill="none">
+                  <path d="M3 8L6 11L11 3.5" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </Checkbox>
+            </div>
+          )}
 
           <div className="flex justify-end gap-2">
             <Button size="sm" variant="secondary" onClick={onClose}>
