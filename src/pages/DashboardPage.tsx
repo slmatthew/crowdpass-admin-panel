@@ -1,4 +1,7 @@
+import { Card } from "@/components/ui/Card";
+import { useApiClient } from "@/hooks/useApiClient";
 import { useDashboardSummary } from "@/hooks/useDashboardSummary";
+import { useQuery } from "@tanstack/react-query";
 import {
 	Ticket,
 	Users,
@@ -6,11 +9,22 @@ import {
 	ShoppingCart,
 	Percent,
 } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 export default function DashboardPage() {
+	const api = useApiClient();
 	const { data, isLoading } = useDashboardSummary();
 
-	if (isLoading) {
+	const {
+		data: registersData,
+		isLoading: registersDataLoading,
+	} = useQuery({
+		queryKey: ['dashboard-registers'],
+		queryFn: () => api.get<{ day: string, count: number }[]>('admin/dashboard/registers'),
+		staleTime: 1000 * 60 * 2,
+	});
+
+	if(isLoading || registersDataLoading) {
 		return <div>Загрузка дашборда...</div>;
 	}
 
@@ -44,6 +58,20 @@ export default function DashboardPage() {
 					title="Бронирований"
 					value={data?.totalBookings}
 				/>
+			</div>
+
+			<div>
+				<Card>
+					<p className="text-xl font-bold">Регистрации по дням</p>
+					<ResponsiveContainer width="100%" height={300} className="mt-2">
+						<LineChart data={registersData!.data}>
+							<XAxis dataKey="day" />
+							<YAxis />
+							<Tooltip />
+							<Line type="monotone" dataKey="count" stroke="#8884d8" strokeWidth={2} />
+						</LineChart>
+					</ResponsiveContainer>
+				</Card>
 			</div>
 		</div>
 	);
