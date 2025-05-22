@@ -1,6 +1,8 @@
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { Booking } from "@/types/models/Booking";
 import { useState } from "react";
+import { getDisplayTicketStatus } from "@/utils/utils";
+import { Link } from "react-router-dom";
 
 interface Props {
   booking: Booking;
@@ -11,6 +13,17 @@ interface Props {
 
 export function BookingEditModal({ booking, onClose, onStatusChange, isUpdating }: Props) {
   const [selectedStatus, setSelectedStatus] = useState<Booking["status"]>(booking.status);
+
+  const eventList = (() => {
+    const events = new Map<number, string>();
+
+    booking.bookingTickets.forEach((bt) => {
+      const { event } = bt.ticket.ticketType;
+      if(!events.has(event.id)) events.set(event.id, event.name);
+    });
+
+    return Array.from(events);
+  })();
 
   const handleChange = (status: Booking["status"]) => {
     setSelectedStatus(status);
@@ -35,7 +48,24 @@ export function BookingEditModal({ booking, onClose, onStatusChange, isUpdating 
               )}
             </div>
             <div>
-              🎫 <span className="font-medium">{booking.bookingTickets[0]?.ticket.ticketType.event.name ?? "—"}</span>
+              🎫 <span className="font-medium">
+                {eventList.length === 0 && "–"}
+                {eventList.length > 0 && eventList.map((e) => {
+                  const isLast = e[0] === eventList[eventList.length - 1][0];
+
+                  return (
+                    <>
+                      <Link
+                        className="text-blue-500 hover:underline hover:cursor-pointer"
+                        to={`/events/${e[0]}`}
+                      >
+                        {e[1]}
+                      </Link>
+                      {!isLast && <span>, </span>}
+                    </>
+                  );
+                })}
+              </span>
             </div>
           </div>
 
@@ -63,7 +93,7 @@ export function BookingEditModal({ booking, onClose, onStatusChange, isUpdating 
             <ul className="text-sm text-gray-600 space-y-0.5">
               {booking.bookingTickets.map((bt) => (
                 <li key={bt.id}>
-                  🎟 {bt.ticket.id} <span className="font-medium">{bt.ticket.ticketType.name}</span> — {bt.ticket.status} — {bt.ticket.ticketType.price} ₽
+                  🎟 №{bt.ticket.ticketType.event.id}-{bt.ticket.id}: {bt.ticket.ticketType.event.name} – <span className="font-medium">{bt.ticket.ticketType.name}</span> — {getDisplayTicketStatus(bt.ticket.status)} — {bt.ticket.ticketType.price} ₽
                   {bt.ticket.ownerFirstName && (
                     <> ({bt.ticket.ownerFirstName} {bt.ticket.ownerLastName})</>
                   )}

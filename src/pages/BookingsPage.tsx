@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useApiClient } from "@/hooks/useApiClient";
 import { Booking } from "@/types/models/Booking";
@@ -8,6 +8,7 @@ import { BookingEditModal } from "@/components/bookings/BookingEditModal";
 import toast from "react-hot-toast";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { useModals } from "@/context/ModalContext";
+import { getDisplayTicketStatus } from "@/utils/utils";
 
 interface BookingFilters {
   search: string;
@@ -159,72 +160,100 @@ export default function BookingsPage() {
                 <th className="px-4 py-2 text-left font-medium text-gray-600">ID</th>
                 <th className="px-4 py-2 text-left font-medium text-gray-600">Пользователь</th>
                 <th className="px-4 py-2 text-left font-medium text-gray-600">Email</th>
-                <th className="px-4 py-2 text-left font-medium text-gray-600">Мероприятие</th>
+                <th className="px-4 py-2 text-left font-medium text-gray-600">Мероприятия</th>
                 <th className="px-4 py-2 text-left font-medium text-gray-600">Билеты</th>
                 <th className="px-4 py-2 text-left font-medium text-gray-600">Статус</th>
                 <th className="px-4 py-2 text-left font-medium text-gray-600">Действия</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {bookings.map((b, idx) => (
-                <>
-                  <tr key={b.id} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                    <td className="px-4 py-2">{b.id}</td>
-                    <td className="px-4 py-2">
-                      <span
-                        className="text-blue-500 hover:underline hover:cursor-pointer"
-                        onClick={() => openModal("user", b.user)}
-                      >
-                        {b.user.firstName} {b.user.lastName}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2">{b.user.email ?? "—"}</td>
-                    <td className="px-4 py-2">{b.bookingTickets[0]?.ticket.ticketType.event.name ?? "—"}</td>
-                    <td className="px-4 py-2">{b.bookingTickets.length}</td>
-                    <td className="px-4 py-2">
-                      <select
-                        value={b.status}
-                        onChange={(e) =>
-                          handleStatusChange(b.id, e.target.value as Booking["status"])
-                        }
-                        disabled={updatingId === b.id}
-                        className="border rounded px-2 py-1"
-                      >
-                        <option value="ACTIVE">Активна</option>
-                        <option value="PAID">Оплачена</option>
-                        <option value="CANCELLED">Отменена</option>
-                      </select>
-                    </td>
-                    <td className="px-4 py-2">
-                      {b.status !== "CANCELLED" && (
-                        <button
-                          onClick={() => setExpandedId(expandedId === b.id ? null : b.id)}
-                          className="text-blue-600 hover:underline"
-                        >
-                          {expandedId === b.id ? "Скрыть" : "Показать"} билеты
-                        </button>
-                      )}
-                    </td>
-                  </tr>
+              {bookings.map((b, idx) => {
+                const events = new Map<number, string>();
 
-                  {expandedId === b.id && (
-                    <tr>
-                      <td colSpan={7} className="bg-gray-100 px-4 py-2">
-                        <ul className="space-y-1">
-                          {b.bookingTickets.map((bt) => (
-                            <li key={bt.id}>
-                              🎟 {bt.ticket.ticketType.name} — {bt.ticket.status} — {bt.ticket.ticketType.price}₽
-                              {bt.ticket.ownerFirstName && (
-                                <> ({bt.ticket.ownerFirstName} {bt.ticket.ownerLastName})</>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
+                b.bookingTickets.forEach((bt) => {
+                  const { event } = bt.ticket.ticketType;
+                  if(!events.has(event.id)) events.set(event.id, event.name);
+                });
+
+                const displayEvents = Array.from(events);
+
+                return (
+                  <>
+                    <tr key={b.id} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                      <td className="px-4 py-2">{b.id}</td>
+                      <td className="px-4 py-2">
+                        <span
+                          className="text-blue-500 hover:underline hover:cursor-pointer"
+                          onClick={() => openModal("user", b.user)}
+                        >
+                          {b.user.firstName} {b.user.lastName}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2">{b.user.email ?? "—"}</td>
+                      <td className="px-4 py-2">
+                        {displayEvents.length === 0 && "—"}
+                        {displayEvents.length > 0 && displayEvents.map((e) => {
+                          const isLast = e[0] === displayEvents[displayEvents.length - 1][0];
+
+                          return (
+                            <>
+                              <Link
+                                className="text-blue-500 hover:underline hover:cursor-pointer"
+                                to={`/events/${e[0]}`}
+                              >
+                                {e[1]}
+                              </Link>
+                              {!isLast && <span>, </span>}
+                            </>
+                          );
+                        })}
+                      </td>
+                      <td className="px-4 py-2">{b.bookingTickets.length}</td>
+                      <td className="px-4 py-2">
+                        <select
+                          value={b.status}
+                          onChange={(e) =>
+                            handleStatusChange(b.id, e.target.value as Booking["status"])
+                          }
+                          disabled={updatingId === b.id}
+                          className="border rounded px-2 py-1"
+                        >
+                          <option value="ACTIVE">Активна</option>
+                          <option value="PAID">Оплачена</option>
+                          <option value="CANCELLED">Отменена</option>
+                        </select>
+                      </td>
+                      <td className="px-4 py-2">
+                        {b.status !== "CANCELLED" && b.bookingTickets.length > 0 && (
+                          <button
+                            onClick={() => setExpandedId(expandedId === b.id ? null : b.id)}
+                            className="text-blue-600 hover:underline"
+                          >
+                            {expandedId === b.id ? "Скрыть" : "Показать"} билеты
+                          </button>
+                        )}
                       </td>
                     </tr>
-                  )}
-                </>
-              ))}
+
+                    {expandedId === b.id && (
+                      <tr>
+                        <td colSpan={7} className="bg-gray-100 px-4 py-2">
+                          <ul className="space-y-1">
+                            {b.bookingTickets.map((bt) => (
+                              <li key={bt.id}>
+                                🎟 {bt.ticket.ticketType.event.name} – {bt.ticket.ticketType.name} — {getDisplayTicketStatus(bt.ticket.status)} — {bt.ticket.ticketType.price}₽
+                                {bt.ticket.ownerFirstName && (
+                                  <> ({bt.ticket.ownerFirstName} {bt.ticket.ownerLastName})</>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        </td>
+                      </tr>
+                    )}
+                  </>
+                )
+              })}
             </tbody>
           </table>
         </div>
