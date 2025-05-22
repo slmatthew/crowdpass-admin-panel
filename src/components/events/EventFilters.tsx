@@ -95,7 +95,6 @@ export function EventFilters({ events, filters, onChange, onReset }: Props) {
       <label className="flex items-center gap-2 text-sm">
         <input
           type="checkbox"
-          defaultChecked={true}
           checked={local.futureOnly}
           onChange={(e) =>
             setLocal({ ...local, futureOnly: e.target.checked })
