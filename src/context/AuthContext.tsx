@@ -25,6 +25,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const LS_TOKEN = "admin_token";
 const LS_REFRESH_TOKEN = "admin_refresh_token";
 
+let isRefreshing = false;
+let refreshPromise: Promise<void> | null = null;
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(localStorage.getItem(LS_TOKEN));
   const [refreshToken, setRefreshToken] = useState<string | null>(localStorage.getItem(LS_REFRESH_TOKEN));
@@ -57,26 +60,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const refreshTokens = async () => {
-    if (!refreshToken) return;
-
-    try {
-      const res = await postTyped<{ accessToken: string, refreshToken: string }>(token ?? '', "auth/refresh", {
-        refreshToken
-      });
-
-      if (res.accessToken && res.refreshToken) {
-        localStorage.setItem(LS_TOKEN, res.accessToken);
-        localStorage.setItem(LS_REFRESH_TOKEN, res.refreshToken);
-        setToken(res.accessToken);
-        setRefreshToken(res.refreshToken);
-        refreshUser();
-      } else {
-        logout();
-      }
-    } catch (err) {
-      console.error("Ошибка при обновлении токенов:", err);
-      logout();
+    if(isRefreshing && refreshPromise) {
+      await refreshPromise;
+      return;
     }
+
+    const realRefreshToken = localStorage.getItem(LS_REFRESH_TOKEN) ?? refreshToken ?? '';
+    isRefreshing = true;
+
+    refreshPromise = (async () => {
+      try {
+        const res = await postTyped<{ accessToken: string; refreshToken: string }>(
+          token ?? '',
+          'auth/refresh',
+          { refreshToken: realRefreshToken }
+        );
+
+        if(res.accessToken && res.refreshToken) {
+          localStorage.setItem(LS_TOKEN, res.accessToken);
+          localStorage.setItem(LS_REFRESH_TOKEN, res.refreshToken);
+
+          setToken(res.accessToken);
+          setRefreshToken(res.refreshToken);
+        } else {
+          logout();
+        }
+      } catch(err) {
+        console.error('Ошибка при обновлении токенов:', err);
+        logout();
+      } finally {
+        isRefreshing = false;
+        refreshPromise = null;
+      }
+    })();
+
+    await refreshPromise;
   };
 
   const login = (newAccessToken: string, newRefreshToken: string) => {

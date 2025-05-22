@@ -27,7 +27,7 @@ export function useApiClient() {
     (response) => response,
     async (error) => {
       const originalRequest = error.config;
-      
+
       if (error.response?.status === 401 && !originalRequest._retry) {
         originalRequest._retry = true;
 
@@ -38,11 +38,8 @@ export function useApiClient() {
           if (newToken) {
             originalRequest.headers.Authorization = `Bearer ${newToken}`;
             return instance(originalRequest);
-          } else {
-            logout();
-            window.location.href = "/login";
           }
-        } catch(refreshError) {
+        } catch {
           logout();
           window.location.href = "/login";
         }
