@@ -18,6 +18,7 @@ import UsersPage from "@/pages/UsersPage";
 import OrganizersPage from "@/pages/OrganizersPage";
 import OrganizerPage from "@/pages/OrganizerPage";
 import EventPage from "@/pages/Events/EventPage";
+import TicketValidationPage from "@/pages/TicketValidationPage";
 
 export function AppRouter() {
   return (
@@ -41,6 +42,8 @@ export function AppRouter() {
             <Route path="/events/create" element={<CreateEventPage />} />
             <Route path="/events/:id" element={<EventPage />} />
             <Route path="/events/:id/edit" element={<EditEventPage />} />
+
+            <Route path="/tickets/validate" element={<TicketValidationPage />} />
             
             <Route path="/organizers" element={<OrganizersPage />} />
             <Route path="/organizers/:id" element={<OrganizerPage />} />
