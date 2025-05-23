@@ -106,6 +106,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
+    try {
+      postTyped(
+        token || '',
+        'auth/logout',
+        { refreshToken }
+      );
+    } catch {}
+
     localStorage.removeItem(LS_TOKEN);
     localStorage.removeItem(LS_REFRESH_TOKEN);
     setToken(null);
