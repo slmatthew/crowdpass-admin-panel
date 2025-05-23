@@ -58,7 +58,7 @@ export function IdEditModal({ open, onClose, user, onUpdated }: Props) {
       setTelegramId(user.telegramId ?? null);
       setVkId(user.vkId ?? null);
     }
-  }, [user]);
+  }, [open]);
 
   return (
     <Dialog open={open} onClose={onClose} className="relative z-50">

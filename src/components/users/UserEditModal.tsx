@@ -15,7 +15,6 @@ interface Props {
 
 export function UserEditModal({ open, onClose, user, onUpdated }: Props) {
   const api = useApiClient();
-  const [init, setInit] = useState<boolean>(false);
   const [firstName, setFirstName] = useState<string>(user?.firstName || "");
   const [lastName, setLastName] = useState<string>(user?.lastName || "");
   const [email, setEmail] = useState<string>(user?.email || "");
@@ -41,7 +40,6 @@ export function UserEditModal({ open, onClose, user, onUpdated }: Props) {
       setEmail('');
       setPhone('');
       setRemovePhone(false);
-      setInit(false);
 
       onClose();
     } catch(err) {
@@ -58,15 +56,13 @@ export function UserEditModal({ open, onClose, user, onUpdated }: Props) {
   };
 
   useEffect(() => {
-    if(!init && user) {
+    if(open && user) {
       setFirstName(user.firstName);
       setLastName(user.lastName);
       setEmail(user.email ?? '');
       setPhone(user.phone ?? '');
-
-      setInit(true);
     }
-  }, [user]);
+  }, [open]);
 
   return (
     <Dialog open={open} onClose={onClose} className="relative z-50">
