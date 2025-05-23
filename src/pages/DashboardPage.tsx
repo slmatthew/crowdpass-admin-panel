@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/Card";
 import { useApiClient } from "@/hooks/useApiClient";
 import { useDashboardSummary } from "@/hooks/useDashboardSummary";
 import { useQuery } from "@tanstack/react-query";
+import dayjs from "dayjs";
 import {
 	Ticket,
 	Users,
@@ -67,7 +68,12 @@ export default function DashboardPage() {
 						<LineChart data={registersData!.data}>
 							<XAxis dataKey="day" />
 							<YAxis />
-							<Tooltip />
+							<Tooltip
+								formatter={(value: number) => [value, 'Регистраций']}
+								labelFormatter={(label) =>
+									`Дата: ${dayjs(label).format("DD.MM.YYYY")}`
+								}
+							/>
 							<Line type="monotone" dataKey="count" stroke="#8884d8" strokeWidth={2} />
 						</LineChart>
 					</ResponsiveContainer>

@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useApiClient } from "@/hooks/useApiClient";
 import { Event } from "@/types/models/Event";
 import { Card } from "@/components/ui/Card";
@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/Button";
 import { TicketTypeModal } from "@/components/events/TicketTypeModal";
 import { TicketTypeCard } from "@/components/events/TicketTypeCard";
 import { ConfirmModal } from "@/components/modals/ConfirmModal";
+import { EventSalesChart } from "@/components/events/EventSalesChart";
 
 interface Stats {
   totalTickets: number;
@@ -31,6 +32,7 @@ export interface TicketTypeExtended extends TicketType {
 interface EventExtended extends Event {
   ticketTypes: TicketTypeExtended[];
   stats: Stats;
+  revenue: number;
 }
 
 export default function EventPage() {
@@ -52,6 +54,8 @@ export default function EventPage() {
     },
     enabled: !!id,
   });
+
+  const queryClient = useQueryClient();
 
   const openCreateTicketType = () => {
     setSelectedTicketType(null);
@@ -211,6 +215,17 @@ export default function EventPage() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* График продаж по дням */}
+      <div>
+        <h2 className="text-lg font-semibold mb-2">График продаж</h2>
+        <div className="flex flex-col gap-3">
+          <CardButton onClick={() => queryClient.invalidateQueries({ queryKey: ['event-sales', event.id] })}>💰 Общая выручка: {event.revenue} ₽</CardButton>
+          <Card>
+            <EventSalesChart eventId={event.id} />
+          </Card>
+        </div>
       </div>
 
       <TicketTypeModal
