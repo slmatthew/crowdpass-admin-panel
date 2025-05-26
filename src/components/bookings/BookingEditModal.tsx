@@ -3,32 +3,71 @@ import { Booking } from "@/types/models/Booking";
 import { useState } from "react";
 import { getDisplayTicketStatus } from "@/utils/utils";
 import { Link } from "react-router-dom";
+import { BookingStatus, TicketStatus } from "@/types/models";
+
+export type BookingData = {
+  id: number;
+  userId: number;
+  status: BookingStatus;
+  createdAt: Date;
+  updatedAt: Date;
+  tickets: {
+    id: number;
+    qrCodeSecret: string | null;
+    status: TicketStatus;
+    owner: {
+      fn: string | null;
+      ln: string | null;
+    };
+    ticketTypeId: number;
+    ticketType: {
+      id: number;
+      slug: string | null;
+      name: string;
+      price: number;
+      eventId: number;
+      isActive: boolean;
+    };
+    event: {
+      id: number;
+      slug: string | null;
+      name: string;
+      isActive: boolean;
+    };
+  }[];
+  user: {
+    id: number;
+    telegramId: string | null;
+    vkId: string | null;
+    email: string | null;
+    firstName: string;
+    lastName: string;
+    phone: string | null;
+    createdAt: Date;
+    isBanned: boolean;
+  };
+};
 
 interface Props {
-  booking: Booking;
+  bookingData: BookingData;
   onClose: () => void;
   onStatusChange: (status: Booking["status"]) => void;
   isUpdating: boolean;
 }
 
-export function BookingEditModal({ booking, onClose, onStatusChange, isUpdating }: Props) {
-  const [selectedStatus, setSelectedStatus] = useState<Booking["status"]>(booking.status);
-
-  const eventList = (() => {
-    const events = new Map<number, string>();
-
-    booking.bookingTickets.forEach((bt) => {
-      const { event } = bt.ticket.ticketType;
-      if(!events.has(event.id)) events.set(event.id, event.name);
-    });
-
-    return Array.from(events);
-  })();
-
+export function BookingEditModal({ bookingData, onClose, onStatusChange, isUpdating }: Props) {
+  const [selectedStatus, setSelectedStatus] = useState<Booking["status"]>(bookingData.status);
   const handleChange = (status: Booking["status"]) => {
-    setSelectedStatus(status);
+    setSelectedStatus(status);    
     onStatusChange(status);
   };
+
+  const eventsMap = new Map<number, BookingData['tickets'][number]['event']>();
+  bookingData.tickets.forEach((t) => {
+    if(!eventsMap.has(t.event.id)) eventsMap.set(t.event.id, t.event);
+  });
+
+  const eventsList = Array.from(eventsMap.values());
 
   return (
     <Dialog open={true} onClose={onClose} className="relative z-50">
@@ -37,29 +76,28 @@ export function BookingEditModal({ booking, onClose, onStatusChange, isUpdating 
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <DialogPanel className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl space-y-6">
           <DialogTitle className="text-xl font-bold">
-            Бронь #{booking.id}
+            Бронь #{bookingData.id}
           </DialogTitle>
 
           <div className="text-sm text-gray-700 space-y-1">
             <div>
-              👤 <span className="font-medium">{booking.user.firstName} {booking.user.lastName}</span>
-              {booking.user.email && (
-                <span className="text-gray-500"> — {booking.user.email}</span>
+              👤 <span className="font-medium">{bookingData.user.isBanned ? <i>{bookingData.user.firstName} {bookingData.user.lastName}</i> : `${bookingData.user.firstName} ${bookingData.user.lastName}`}</span>
+              {bookingData.user.email && (
+                <span className="text-gray-500"> — {bookingData.user.email}</span>
               )}
             </div>
             <div>
               🎫 <span className="font-medium">
-                {eventList.length === 0 && "–"}
-                {eventList.length > 0 && eventList.map((e) => {
-                  const isLast = e[0] === eventList[eventList.length - 1][0];
+                {eventsList.map((e, idx) => {
+                  const isLast = idx === eventsList.length - 1;
 
                   return (
                     <>
                       <Link
                         className="text-blue-500 hover:underline hover:cursor-pointer"
-                        to={`/events/${e[0]}`}
+                        to={`/events/${e.slug ? e.slug : e.id}`}
                       >
-                        {e[1]}
+                        {e.isActive ? e.name : <i>{e.name}</i>}
                       </Link>
                       {!isLast && <span>, </span>}
                     </>
@@ -91,11 +129,23 @@ export function BookingEditModal({ booking, onClose, onStatusChange, isUpdating 
           <div className="space-y-1">
             <h3 className="text-sm font-semibold text-gray-700">Билеты</h3>
             <ul className="text-sm text-gray-600 space-y-0.5">
-              {booking.bookingTickets.map((bt) => (
-                <li key={bt.id}>
-                  🎟 №{bt.ticket.ticketType.event.id}-{bt.ticket.id}: {bt.ticket.ticketType.event.name} – <span className="font-medium">{bt.ticket.ticketType.name}</span> — {getDisplayTicketStatus(bt.ticket.status)} — {bt.ticket.ticketType.price} ₽
-                  {bt.ticket.ownerFirstName && (
-                    <> ({bt.ticket.ownerFirstName} {bt.ticket.ownerLastName})</>
+              {bookingData.tickets.map((t) => (
+                <li key={t.id}>
+                  🎟 №{t.event.id}-{t.id}: <Link
+                    className="text-blue-500 hover:underline hover:cursor-pointer"
+                    to={`/events/${t.event.slug ? t.event.slug : t.event.id}`}
+                  >
+                    {t.event.isActive ? t.event.name : <i>{t.event.name}</i>}
+                  </Link>
+                  , <Link
+                    className="text-blue-500 hover:underline hover:cursor-pointer"
+                    to={`/events/${t.event.slug ? t.event.slug : t.event.id}?ttid=${t.ticketType.id}`}
+                  >{t.ticketType.name}</Link>
+                  , {getDisplayTicketStatus(t.status)}
+                  , {t.ticketType.price} ₽
+
+                  {t.owner.fn && (
+                    <> ({t.owner.fn} {t.owner.ln})</>
                   )}
                 </li>
               ))}

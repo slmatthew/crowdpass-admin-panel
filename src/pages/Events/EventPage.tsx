@@ -1,10 +1,9 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useApiClient } from "@/hooks/useApiClient";
-import { Event } from "@/types/models/Event";
 import { Card } from "@/components/ui/Card";
 import dayjs from "dayjs";
-import { CalendarDays, MapPin, Ticket, Users } from "lucide-react";
+import { CalendarDays, MapPin, Ticket, Trash, Users } from "lucide-react";
 import { CardButton } from "@/components/ui/CardButton";
 import { useModals } from "@/context/ModalContext";
 import { BackButton } from "@/components/ui/BackButton";
@@ -16,6 +15,10 @@ import { TicketTypeModal } from "@/components/events/TicketTypeModal";
 import { TicketTypeCard } from "@/components/events/TicketTypeCard";
 import { ConfirmModal } from "@/components/modals/ConfirmModal";
 import { EventSalesChart } from "@/components/events/EventSalesChart";
+import { EventOverviewResponse, EventOverviewTicketType } from "@/types/api/EventOverviewResponse";
+import { cn } from "@/utils/utils";
+import { EventFormData } from "@/components/events/EventForm";
+import { AxiosError } from "axios";
 
 interface Stats {
   totalTickets: number;
@@ -29,24 +32,19 @@ export interface TicketTypeExtended extends TicketType {
   stats: Stats;
 }
 
-interface EventExtended extends Event {
-  ticketTypes: TicketTypeExtended[];
-  stats: Stats;
-  revenue: number;
-}
-
 export default function EventPage() {
   const { id } = useParams();
   const api = useApiClient();
   const { openModal } = useModals();
   const navigate = useNavigate();
+  const [searchParams, _] = useSearchParams();
 
   const [ticketTypeModalOpen, setTicketTypeModalOpen] = useState(false);
   const [deleteTypeModalOpen, setDeleteTypeModalOpen] = useState(false);
   const [confirmDeleteTypeModalOpen, setConfirmDeleteTypeModalOpen] = useState(false);
   const [selectedTicketType, setSelectedTicketType] = useState<TicketType | null>(null);
 
-  const { data: event, isLoading, refetch } = useQuery<EventExtended>({
+  const { data: event, isLoading, refetch } = useQuery<EventOverviewResponse>({
     queryKey: ["event", id],
     queryFn: async () => {
       const res = await api.get(`admin/events/${id}/overview`);
@@ -62,7 +60,7 @@ export default function EventPage() {
     setTicketTypeModalOpen(true);
   };
   
-  const openEditTicketType = (tt: TicketTypeExtended) => {
+  const openEditTicketType = (tt: EventOverviewTicketType) => {
     setSelectedTicketType(tt);
     setTicketTypeModalOpen(true);
   };
@@ -107,6 +105,54 @@ export default function EventPage() {
     }
   };
 
+  const toggleEvent = async (key: 'isPublished' | 'isSalesEnabled', enabled: boolean) => {
+    if(!event) return;
+
+    try {
+      const data: EventFormData = {
+        name: event.name,
+        description: event.description,
+        startDate: event.startDate,
+        endDate: event.endDate,
+        location: event.location,
+        organizerId: event.organizerId.toString(),
+        categoryId: event.categoryId.toString(),
+        subcategoryId: event.subcategoryId.toString(),
+        slug: event.slug,
+        isPublished: key === 'isPublished' ? enabled : event.isPublished,
+        isSalesEnabled: key === 'isSalesEnabled' ? enabled : event.isSalesEnabled,
+      };
+      await api.patch(`admin/events/${id}`, data);
+      refetch();
+
+      const message = key === 'isPublished' ? (enabled ? 'Мероприятие опубликовано' : 'Мероприятие скрыто') 
+                      : (enabled ? 'Продажи включены' : 'Продажи выключены');
+
+      toast.success(message);
+    } catch(err: any) {
+      if(err instanceof AxiosError) {
+        if(err.response?.data.message) {
+          return toast.error(err.response.data.message);
+        }
+      }
+
+      toast.error('Произошла ошибка');
+    }
+  };
+
+  const toggleTicketTypeSales = async (ticketTypeId: number, enabled: boolean) => {
+    try {
+      await api.patch(`/admin/ticket-types/${ticketTypeId}`, { isSalesEnabled: enabled });
+      toast.success("Тип билета обновлён");
+      refetch();
+    } catch(err: any) {
+      console.error(err);
+
+      const errorMessage = err.response.data.message ?? null;
+      toast.error(errorMessage ?? 'Произошла ошибка');
+    }
+  };
+
   if (isLoading || !event) return <p>Загрузка...</p>;
 
   const eventComing = new Date(event.endDate) > new Date();
@@ -114,6 +160,13 @@ export default function EventPage() {
   const totalTickets = event.stats.totalTickets;
   const availableTickets = event.stats.availableTickets;
   const soldTickets = event.stats.soldTickets;
+
+  const focusedTicketTypeId = ((): number | null => {
+    const sp = searchParams.get('ttid');
+    if(Number(sp) > 0) return Number(sp);
+
+    return null;
+  })();
 
   return (
     <div className="space-y-6">
@@ -129,13 +182,34 @@ export default function EventPage() {
           </div>
         )}
         <div className="p-6 space-y-2">
-          <h1 className="text-2xl font-bold">{event.name}</h1>
+          <div className="flex flex-row justify-items-center gap-2">
+            <h1 className="text-2xl font-bold">{event.name}</h1>
+            {!event.isDeleted && (
+              <div className="flex justify-center content-center pt-[6px] pb-[6px]"><Trash size={20} className="text-red-600" /></div>
+            )}
+          </div>
           <p className="text-gray-700">{event.description}</p>
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:gap-3 mb-2">
         <CardButton className="bg-blue-500! text-white!" onClick={() => navigate(`/events/${event.id}/edit`)}>Редактировать</CardButton>
+        <CardButton
+          onClick={() => toggleEvent('isPublished', !event.isPublished)}
+          className={cn(
+            event.isPublished ? 'bg-red-500!' : 'bg-green-500!',
+            'text-white!'
+          )}
+        >{event.isPublished ? 'Скрыть' : 'Опубликовать'}</CardButton>
+        <CardButton
+          onClick={() => toggleEvent('isSalesEnabled', !event.isSalesEnabled)}
+          className={cn(
+            event.isSalesEnabled ? 'bg-red-500!' : 'bg-green-500!',
+            'text-white!'
+          )}
+        >{event.isSalesEnabled ? 'Отключить' : 'Включить'} продажи</CardButton>
+      </div>
+      <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
         <CardButton onClick={() => openModal("organizer", event.organizer)}>{event.organizer.name}</CardButton>
         <CardButton onClick={() => navigate(`/categories?categoryId=${event.category.id}`)}>{event.category.name}</CardButton>
         <CardButton onClick={() => navigate(`/categories?subcategoryId=${event.subcategory.id}`)}>{event.subcategory.name}</CardButton>
@@ -204,7 +278,9 @@ export default function EventPage() {
               <TicketTypeCard
                 key={type.id}
                 tt={type}
+                focused={focusedTicketTypeId === type.id}
                 eventComing={eventComing}
+                onToggleSales={toggleTicketTypeSales}
                 onEdit={() => openEditTicketType(type)}
                 onDelete={() => {
                   setSelectedTicketType(type);

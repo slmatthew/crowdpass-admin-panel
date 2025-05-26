@@ -4,11 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useApiClient } from "@/hooks/useApiClient";
 import { Booking } from "@/types/models/Booking";
 import { Pagination } from "@/components/Pagination";
-import { BookingEditModal } from "@/components/bookings/BookingEditModal";
+import { BookingData, BookingEditModal } from "@/components/bookings/BookingEditModal";
 import toast from "react-hot-toast";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { useModals } from "@/context/ModalContext";
 import { getDisplayTicketStatus } from "@/utils/utils";
+import { BookingsResponse } from "@/types/api/BookingsResponse";
 
 interface BookingFilters {
   search: string;
@@ -18,18 +19,16 @@ interface BookingFilters {
   perPage: number;
 }
 
-interface BookingsResponse {
-  bookings: Booking[];
-  total: number;
-}
-
 export default function BookingsPage() {
   const api = useApiClient();
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [params, setParams] = useSearchParams();
+
   const [searchId, setSearchId] = useState("");
-  const [searchedBooking, setSearchedBooking] = useState<Booking | null>(null);
+  const [searchedBooking, setSearchedBooking] = useState<BookingData | null>(null);
+  const SEARCH_USE_FETCHED_DATA = false;
+
   const isMobile = useIsMobile(768);
   const { openModal } = useModals();
 
@@ -74,8 +73,8 @@ export default function BookingsPage() {
     try {
       setUpdatingId(bookingId);
 
-      const result = (await api.patch<Booking>(`admin/bookings/${bookingId}/status`, { status })).data;
-      if(searchedBooking !== null) setSearchedBooking(result);
+      const res = await api.patch<BookingsResponse>(`admin/bookings/${bookingId}/status`, { status });
+      setSearchedBooking(makeBookingDataForModal(res.data, bookingId));
 
       await refetch();
 
@@ -88,20 +87,69 @@ export default function BookingsPage() {
     }
   };
 
+  const makeBookingDataForModal = (
+    bookingsData: BookingsResponse,
+    bookingId: number
+  ): BookingData | null => {
+    const booking = bookingsData.bookings.items.find(b => b.id === bookingId);
+    if(!booking) return null;
+
+    const user = bookingsData.users.find(u => u.id === booking.userId);
+    if(!user) return null;
+
+    const tickets = booking.tickets.map((t) => {
+      const ticketType = bookingsData.ticketTypes.find(tt => tt.id === t.ticketTypeId);
+      if(!ticketType) return;
+
+      const event = bookingsData.events.find(e => e.id === ticketType.eventId);
+      if(!event) return;
+
+      return {
+        ...t,
+        ticketType,
+        event,
+      };
+    });
+
+    return {
+      ...booking,
+      tickets: tickets.filter(t => t !== undefined),
+      user,
+    };
+  };
+
   const handleSearch = async () => {
     setSearchedBooking(null);
-    if (!searchId) return;
+    if(!searchId) return;
 
-    try {
-      const res = await api.get<Booking>(`admin/bookings/${searchId}`);
-      setSearchedBooking(res.data);
-    } catch {
-      toast.error("Бронирование не найдено");
+    const bookingId = Number(searchId);
+    if(bookingId <= 0) return;
+
+    if(SEARCH_USE_FETCHED_DATA) {
+      if(bookingId > 0 && data) {
+        setSearchedBooking(makeBookingDataForModal(data, bookingId));
+      }
+    } else {
+      try {
+        const res = await api.get<BookingsResponse>(`admin/bookings/${bookingId}`);
+        setSearchedBooking(makeBookingDataForModal(res.data, bookingId));
+      } catch {
+        toast.error("Бронирование не найдено");
+      }
     }
   };
 
-  const bookings = data?.bookings ?? [];
-  const total = data?.total ?? 0;
+  const {
+    bookings,
+    events,
+    ticketTypes,
+    users,
+  } = data ? data : {
+    bookings: { items: [], total: 0 },
+    events: [],
+    ticketTypes: [],
+    users: [],
+  };
 
   return (
     <div className="space-y-6">
@@ -132,10 +180,10 @@ export default function BookingsPage() {
       {/* Модалка по ID */}
       {searchedBooking && (
         <BookingEditModal
-          booking={searchedBooking}
+          bookingData={searchedBooking}
           onClose={() => setSearchedBooking(null)}
-          isUpdating={updatingId === searchedBooking.id}
-          onStatusChange={(newStatus) => handleStatusChange(searchedBooking.id, newStatus)}
+          isUpdating={updatingId === Number(searchId)}
+          onStatusChange={(newStatus) => handleStatusChange(Number(searchId), newStatus)}
         />
       )}
 
@@ -148,7 +196,7 @@ export default function BookingsPage() {
         <p className="text-gray-500">Для просмотра списка броней воспользуйтесь компьютером</p>
       )}
       
-      {!isLoading && !isMobile && bookings.length === 0 && (
+      {!isLoading && !isMobile && bookings.items.length === 0 && (
         <p className="text-gray-500">Бронирования не найдены</p>
       )}
       
@@ -167,15 +215,23 @@ export default function BookingsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {bookings.map((b, idx) => {
-                const events = new Map<number, string>();
+              {bookings.items.map((b, idx) => {
+                const eventsMap = new Map<number, { name: string; slug: string | null; }>();
 
-                b.bookingTickets.forEach((bt) => {
-                  const { event } = bt.ticket.ticketType;
-                  if(!events.has(event.id)) events.set(event.id, event.name);
+                b.tickets.forEach((t) => {
+                  const ticketType = ticketTypes.find(tt => tt.id === t.ticketTypeId);
+                  if(!ticketType) return;
+
+                  const event = events.find(e => e.id === ticketType.eventId);
+                  if(!event) return;
+
+                  if(!eventsMap.has(event.id)) eventsMap.set(event.id, { name: event.name, slug: event.slug });
                 });
 
                 const displayEvents = Array.from(events);
+
+                const user = users.find(u => u.id === b.userId);
+                if(!user) return null;
 
                 return (
                   <>
@@ -184,31 +240,31 @@ export default function BookingsPage() {
                       <td className="px-4 py-2">
                         <span
                           className="text-blue-500 hover:underline hover:cursor-pointer"
-                          onClick={() => openModal("user", b.user)}
+                          onClick={() => openModal("user", user)}
                         >
-                          {b.user.firstName} {b.user.lastName}
+                          {user.isBanned ? <i>{user.firstName} {user.lastName}</i> : `${user.firstName} ${user.lastName}`}
                         </span>
                       </td>
-                      <td className="px-4 py-2">{b.user.email ?? "—"}</td>
+                      <td className="px-4 py-2">{user.email ?? "—"}</td>
                       <td className="px-4 py-2">
                         {displayEvents.length === 0 && "—"}
                         {displayEvents.length > 0 && displayEvents.map((e) => {
-                          const isLast = e[0] === displayEvents[displayEvents.length - 1][0];
+                          const isLast = e.id === displayEvents[displayEvents.length - 1].id;
 
                           return (
                             <>
                               <Link
                                 className="text-blue-500 hover:underline hover:cursor-pointer"
-                                to={`/events/${e[0]}`}
+                                to={`/events/${e.slug ? e.slug : e.id}`}
                               >
-                                {e[1]}
+                                {e.isActive ? e.name : <i>{e.name}</i>}
                               </Link>
                               {!isLast && <span>, </span>}
                             </>
                           );
                         })}
                       </td>
-                      <td className="px-4 py-2">{b.bookingTickets.length}</td>
+                      <td className="px-4 py-2">{b.tickets.length}</td>
                       <td className="px-4 py-2">
                         <select
                           value={b.status}
@@ -224,7 +280,7 @@ export default function BookingsPage() {
                         </select>
                       </td>
                       <td className="px-4 py-2">
-                        {b.status !== "CANCELLED" && b.bookingTickets.length > 0 && (
+                        {b.status !== "CANCELLED" && b.tickets.length > 0 && (
                           <button
                             onClick={() => setExpandedId(expandedId === b.id ? null : b.id)}
                             className="text-blue-600 hover:underline"
@@ -239,14 +295,22 @@ export default function BookingsPage() {
                       <tr key={b.id + 0.5}>
                         <td colSpan={7} className="bg-gray-100 px-4 py-2">
                           <ul className="space-y-1">
-                            {b.bookingTickets.map((bt) => (
-                              <li key={bt.id}>
-                                🎟 {bt.ticket.ticketType.event.name} – {bt.ticket.ticketType.name} — {getDisplayTicketStatus(bt.ticket.status)} — {bt.ticket.ticketType.price}₽
-                                {bt.ticket.ownerFirstName && (
-                                  <> ({bt.ticket.ownerFirstName} {bt.ticket.ownerLastName})</>
-                                )}
-                              </li>
-                            ))}
+                            {b.tickets.map((t) => {
+                              const ticketType = ticketTypes.find(tt => tt.id === t.ticketTypeId)!;
+                              const event = events.find(e => e.id === ticketType.eventId)!;
+
+                              return (
+                                <li key={t.id}>
+                                  🎟 {event.name} – <Link
+                                    className="text-blue-500 hover:underline hover:cursor-pointer"
+                                    to={`/events/${event.slug ? event.slug : event.id}?ttid=${ticketType.id}`}
+                                  >{ticketType.name}</Link> — {getDisplayTicketStatus(t.status)} — {ticketType.price}₽
+                                  {t.owner.fn && (
+                                    <> ({t.owner.fn} {t.owner.ln})</>
+                                  )}
+                                </li>
+                              );
+                            })}
                           </ul>
                         </td>
                       </tr>
@@ -260,9 +324,9 @@ export default function BookingsPage() {
       )}
 
       {/* Пагинация */}
-      {total > filters.perPage && !isMobile && (
+      {bookings.total > filters.perPage && !isMobile && (
         <Pagination
-          total={total}
+          total={bookings.total}
           perPage={filters.perPage}
           page={filters.page}
           onPageChange={goToPage}

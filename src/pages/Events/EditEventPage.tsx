@@ -25,6 +25,8 @@ export default function EditEventPage() {
         organizerId: String(event.organizerId),
         categoryId: String(event.categoryId),
         subcategoryId: String(event.subcategoryId),
+        isPublished: false,
+        isSalesEnabled: false,
       });
 
       setLoading(false);

@@ -11,6 +11,7 @@ import { useUnsavedChangesWarning } from "@/hooks/useUnsavedChangesWarning";
 // Схема
 export const eventSchema = z.object({
   name: z.string().min(3),
+  slug: z.string().min(3).optional(),
   description: z.string().min(10),
   location: z.string().min(2),
   startDate: z.string().min(1, "Дата обязательна"),
@@ -18,6 +19,8 @@ export const eventSchema = z.object({
   organizerId: z.string().min(1),
   categoryId: z.string().min(1),
   subcategoryId: z.string().min(1),
+  isPublished: z.boolean().optional(),
+  isSalesEnabled: z.boolean().optional(),
 });
 
 export type EventFormData = z.infer<typeof eventSchema>;

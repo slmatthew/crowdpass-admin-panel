@@ -1,19 +1,22 @@
-import { MoreVertical, Edit, Trash2, Ticket } from "lucide-react";
+import { MoreVertical, Edit, Trash2, Ticket, Power, PowerOff } from "lucide-react";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { Card } from "@/components/ui/Card";
 import { TicketTypeExtended } from "@/pages/Events/EventPage";
+import { cn } from "@/utils/utils";
 
 interface Props {
   tt: TicketTypeExtended;
+  focused?: boolean;
   eventComing: boolean;
   onEdit: (tt: TicketTypeExtended) => void;
   onDelete: (id: number) => void;
   onGenerate: (id: number) => void;
+  onToggleSales: (id: number, enable: boolean) => any;
 }
 
-export function TicketTypeCard({ tt, eventComing, onEdit, onDelete, onGenerate }: Props) {
+export function TicketTypeCard({ tt, focused = false, eventComing, onEdit, onDelete, onGenerate, onToggleSales }: Props) {
   return (
-    <Card className="relative pt-3 pr-3">
+    <Card className={cn("relative pt-3 pr-3", focused ? 'outline-2 outline-offset-2 outline-violet-700' : '')}>
       {/* Dropdown actions */}
       <Menu as="div" className="absolute top-2 right-2 text-sm text-gray-500">
         <MenuButton className="hover:text-gray-800 transition">
@@ -23,11 +26,11 @@ export function TicketTypeCard({ tt, eventComing, onEdit, onDelete, onGenerate }
           <div className="py-1">
             {eventComing && (
               <MenuItem>
-                {({ active }) => (
+                {({ focus }) => (
                   <button
                     onClick={() => onGenerate(tt.id)}
                     className={`${
-                      active ? "bg-gray-100" : ""
+                      focus ? "bg-gray-100" : ""
                     } w-full px-4 py-2 text-left text-sm flex items-center gap-2`}
                   >
                     <Ticket size={16} /> Выпустить билеты
@@ -35,12 +38,40 @@ export function TicketTypeCard({ tt, eventComing, onEdit, onDelete, onGenerate }
                 )}
               </MenuItem>
             )}
+            {eventComing && tt.isSalesEnabled && (
+              <MenuItem>
+                {({ focus }) => (
+                  <button
+                    onClick={() => onToggleSales(tt.id, false)}
+                    className={`${
+                      focus ? "bg-gray-100" : ""
+                    } w-full px-4 py-2 text-left text-sm flex items-center gap-2`}
+                  >
+                    <PowerOff size={16} /> Отключить продажи
+                  </button>
+                )}
+              </MenuItem>
+            )}
+            {eventComing && !tt.isSalesEnabled && (
+              <MenuItem>
+                {({ focus }) => (
+                  <button
+                    onClick={() => onToggleSales(tt.id, true)}
+                    className={`${
+                      focus ? "bg-gray-100" : ""
+                    } w-full px-4 py-2 text-left text-sm flex items-center gap-2`}
+                  >
+                    <Power size={16} /> Включить продажи
+                  </button>
+                )}
+              </MenuItem>
+            )}
             <MenuItem>
-              {({ active }) => (
+              {({ focus }) => (
                 <button
                   onClick={() => onEdit(tt)}
                   className={`${
-                    active ? "bg-gray-100" : ""
+                    focus ? "bg-gray-100" : ""
                   } w-full px-4 py-2 text-left text-sm flex items-center gap-2`}
                 >
                   <Edit size={16} /> Редактировать
@@ -48,11 +79,11 @@ export function TicketTypeCard({ tt, eventComing, onEdit, onDelete, onGenerate }
               )}
             </MenuItem>
             <MenuItem>
-              {({ active }) => (
+              {({ focus }) => (
                 <button
                   onClick={() => onDelete(tt.id)}
                   className={`${
-                    active ? "bg-red-100 text-red-700" : "text-red-500"
+                    focus ? "bg-red-100 text-red-700" : "text-red-500"
                   } w-full px-4 py-2 text-left text-sm flex items-center gap-2`}
                 >
                   <Trash2 size={16} /> Удалить
@@ -65,10 +96,10 @@ export function TicketTypeCard({ tt, eventComing, onEdit, onDelete, onGenerate }
 
       {/* Content */}
       <div className="space-y-1">
-        <h3 className="text-lg font-semibold">{tt.name}</h3>
+        <h3 className={cn("text-lg font-semibold", !tt.isSalesEnabled && 'text-gray-500')}>{tt.name}</h3>
         <p className="text-sm text-gray-600">Цена: {tt.price}₽</p>
         <p className="text-sm text-gray-600">Всего: {tt.quantity}</p>
-        <p className="text-sm text-gray-600">Доступно: {tt.stats.availableTickets}</p>
+        <p className={cn('text-sm', tt.isSalesEnabled && tt.stats.totalTickets === 0 ? 'text-red-600' : 'text-gray-600')}>Доступно: {tt.stats.availableTickets}</p>
       </div>
     </Card>
   );

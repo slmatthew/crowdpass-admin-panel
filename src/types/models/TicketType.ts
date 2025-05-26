@@ -7,6 +7,10 @@ export interface TicketType {
   name: string;
   price: number;
   quantity: number;
+  isSalesEnabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+  isDeleted: boolean;
   event: Event;
   tickets: Ticket[];
 }
