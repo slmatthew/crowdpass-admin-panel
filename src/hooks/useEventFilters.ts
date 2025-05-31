@@ -7,6 +7,8 @@ export interface Filters {
   location: string;
   sort: 'soonest' | 'latest' | 'az' | 'za';
 	futureOnly: boolean;
+	published: 'all' | 'published' | 'hidden';
+	sales: 'all' | 'enabled' | 'disabled';
   page: number;
 }
 
@@ -17,6 +19,8 @@ const defaultFilters: Filters = {
 	location: '',
 	sort: 'soonest',
 	futureOnly: true,
+	published: 'all',
+	sales: 'all',
 	page: 1,
 };
 

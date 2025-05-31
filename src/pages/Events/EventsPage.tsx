@@ -43,6 +43,26 @@ export default function EventsPage() {
         filters.location ? e.location === filters.location : true
       )
       .filter((e) => {
+        switch(filters.published) {
+          case 'published':
+            return e.isPublished;
+          case 'hidden':
+            return !e.isPublished;
+          case 'all': default:
+            return true;
+        }
+      })
+      .filter((e) => {
+        switch(filters.sales) {
+          case 'enabled':
+            return e.isSalesEnabled;
+          case 'disabled':
+            return !e.isSalesEnabled;
+          case 'all': default:
+            return true;
+        }
+      })
+      .filter((e) => {
         if (!filters.futureOnly) return true;
         return new Date(e.endDate) >= new Date();
       })      

@@ -33,7 +33,6 @@ export function EventFilters({ events, filters, onChange, onReset }: Props) {
 
   return (
     <div className="bg-white p-4 rounded-md shadow flex flex-wrap gap-4 items-end">
-      {/* Поиск */}
       <input
         type="text"
         placeholder="Поиск по названию"
@@ -42,7 +41,6 @@ export function EventFilters({ events, filters, onChange, onReset }: Props) {
         onChange={(e) => setLocal({ ...local, search: e.target.value })}
       />
 
-      {/* Организатор */}
       <select
         value={local.organizer}
         onChange={(e) => setLocal({ ...local, organizer: e.target.value })}
@@ -54,7 +52,6 @@ export function EventFilters({ events, filters, onChange, onReset }: Props) {
         ))}
       </select>
 
-      {/* Категория */}
       <select
         value={local.category}
         onChange={(e) => setLocal({ ...local, category: e.target.value })}
@@ -66,7 +63,6 @@ export function EventFilters({ events, filters, onChange, onReset }: Props) {
         ))}
       </select>
 
-      {/* Локация */}
       <select
         value={local.location}
         onChange={(e) => setLocal({ ...local, location: e.target.value })}
@@ -78,7 +74,30 @@ export function EventFilters({ events, filters, onChange, onReset }: Props) {
         ))}
       </select>
 
-      {/* Сортировка */}
+      <select
+        className="select"
+        value={local.published}
+        onChange={(e) => 
+          setLocal({ ...local, published: e.target.value as Filters['published'] })
+        }
+      >
+        <option value="all">Все</option>
+        <option value="published">Опубликованные</option>
+        <option value="hidden">Скрытые</option>
+      </select>
+
+      <select
+        className="select"
+        value={local.sales}
+        onChange={(e) =>
+          setLocal({ ...local, sales: e.target.value as Filters['sales'] })
+        }
+      >
+        <option value="all">Все</option>
+        <option value="enabled">Продажи: включены</option>
+        <option value="disabled">Продажи: выключены</option>
+      </select>
+
       <select
         value={local.sort}
         onChange={(e) =>
@@ -92,18 +111,19 @@ export function EventFilters({ events, filters, onChange, onReset }: Props) {
         <option value="za">Название: Я–А</option>
       </select>
 
-      <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={local.futureOnly}
-          onChange={(e) =>
-            setLocal({ ...local, futureOnly: e.target.checked })
-          }
-        />
-        Только предстоящие
-      </label>
+      <div className="w-full">
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={local.futureOnly}
+            onChange={(e) =>
+              setLocal({ ...local, futureOnly: e.target.checked })
+            }
+          />
+          Только предстоящие
+        </label>
+      </div>
 
-      {/* Кнопки */}
       <button className="btn-primary" onClick={handleApply}>
         Применить
       </button>
