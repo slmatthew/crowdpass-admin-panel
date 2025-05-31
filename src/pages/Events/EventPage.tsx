@@ -240,6 +240,7 @@ export default function EventPage() {
                 variant={event.isSalesEnabled ? 'destructive' : 'primary'}
                 size="sm"
                 onClick={() => toggleEvent('isSalesEnabled', !event.isSalesEnabled)}
+                disabled={event.ticketTypes.length === 0}
               >
                 {event.isSalesEnabled ? 'Прекратить продажи' : 'Начать продажи'}
               </Button>
