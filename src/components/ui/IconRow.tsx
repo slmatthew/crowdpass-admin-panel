@@ -3,7 +3,7 @@ import React from "react";
 
 interface IconRowProps extends React.HTMLAttributes<HTMLDivElement> {
   icon: React.ReactNode;
-  text?: string;
+  text?: string | React.ReactNode;
   href?: string;
   muted?: boolean;
 }

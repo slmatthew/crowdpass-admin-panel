@@ -18,6 +18,9 @@ export function OrganizerModal({ open, onClose, organizer }: Props) {
     onClose();
     navigate(`/organizers/${organizer.id}`);
   };
+  
+  const hasDescription = organizer.description && organizer.description.length > 0;
+  const hasContact = organizer.contacts && organizer.contacts.length > 0;
 
   return (
     <Dialog open={open} onClose={onClose} className="relative z-50">
@@ -28,8 +31,12 @@ export function OrganizerModal({ open, onClose, organizer }: Props) {
             {organizer.name} <span className="text-gray-500 text-sm">#{organizer.id}</span>
           </DialogTitle>
 
-          <IconRow className="pt-4 border-t border-gray-200 space-y-1" icon={<Text size={18} />} text={organizer.description} />
-          <IconRow icon={<AtSign size={18} />} text={organizer.contacts} />
+          <IconRow
+            className="pt-4 border-t border-gray-200 space-y-1"
+            icon={<Text size={18} />}
+            text={hasDescription ? organizer.description : <i>Описание не указано</i>}
+          />
+          <IconRow icon={<AtSign size={18} />} text={hasContact ? organizer.contacts : <i>Контакты не указаны</i>} />
 
           <div className="pt-4 flex justify-end">
             <Button variant="secondary" size="sm" onClick={onClose}>Закрыть</Button>
