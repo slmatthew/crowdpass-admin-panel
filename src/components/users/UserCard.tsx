@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { useAuth } from "@/context/AuthContext";
 import { User, Admin } from "@/types/models";
 import dayjs from "dayjs";
 
@@ -14,6 +15,9 @@ interface Props {
 }
 
 export function UserCard({ user, currentAdmin, onEdit, onIdEdit, onPromote, onDemote, onBan }: Props) {
+  const { features } = useAuth();
+  const banEnabled = features ? features.ap.ban : false;
+
   const fullName = `${user.firstName} ${user.lastName}`.trim();
   const isAdmin = !!user.admin;
   const canModify = currentAdmin && (
@@ -61,7 +65,7 @@ export function UserCard({ user, currentAdmin, onEdit, onIdEdit, onPromote, onDe
           {isAdmin ? (
             <>
               {canModify && (
-                <Button variant="destructive" size="sm" onClick={() => onDemote(user)}>
+                <Button variant="destructive" size="sm" onClick={() => onDemote(user)} disabled={currentAdmin.userId === user.id}>
                   Снять права
                 </Button>
               )}
@@ -86,12 +90,12 @@ export function UserCard({ user, currentAdmin, onEdit, onIdEdit, onPromote, onDe
           >
             🆔 ID
           </Button>
-          {user.isBanned && (
+          {banEnabled && user.isBanned && (
             <Button disabled={!canBan} variant="ghost" size="sm" onClick={() => onBan(user, false)}>
               ✅ Разбан
             </Button>
           )}
-          {!user.isBanned && (
+          {banEnabled && !user.isBanned && (
             <Button disabled={!canBan} variant="ghost" size="sm" onClick={() => onBan(user, true)}>
               ⛔️ Бан
             </Button>
