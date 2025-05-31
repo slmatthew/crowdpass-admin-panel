@@ -12,6 +12,11 @@ interface AuthContextType {
   token: string | null;
   user: User | null;
   isAuthenticated: boolean;
+  features: {
+    tp: boolean;
+    stable: boolean;
+    ap: { ban: boolean; };
+  } | null;
   login: (newAccessToken: string, newRefreshToken: string) => void;
   logout: () => void;
   refreshUser: () => Promise<void>;
@@ -32,12 +37,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(localStorage.getItem(LS_TOKEN));
   const [refreshToken, setRefreshToken] = useState<string | null>(localStorage.getItem(LS_REFRESH_TOKEN));
   const [user, setUser] = useState<User | null>(null);
+  const [features, setFeatures] = useState<AuthContextType['features'] | null>(null);
 
   const isAuthenticated = !!token;
 
   useEffect(() => {
-    if (token) {
+    if(token) {
       refreshUser();
+
+      (async () => {
+        if(!features) {
+          try {
+            const ftrs = await fetchTyped<AuthContextType['features']>(token, 'dashboard/features');
+            if(ftrs) setFeatures(ftrs);
+          } catch(e) {
+            console.warn('Не удалось получить features:', e);
+          }
+        }
+      })();
     }
   }, [token]);
 
@@ -129,7 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ token, user, isAuthenticated, role, hasRole, login, logout, refreshUser, refreshTokens }}
+      value={{ token, user, isAuthenticated, features, role, hasRole, login, logout, refreshUser, refreshTokens }}
     >
       {children}
     </AuthContext.Provider>

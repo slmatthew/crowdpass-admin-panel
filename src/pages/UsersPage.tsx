@@ -15,7 +15,8 @@ import { AxiosError } from "axios";
 
 export default function UsersPage() {
   const api = useApiClient();
-  const { role: currentRole } = useAuth();
+  const { user: currentUser } = useAuth();
+  const currentAdmin = currentUser?.admin || null;;
 
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
@@ -81,6 +82,30 @@ export default function UsersPage() {
     }
   };
 
+  const handleBan = async (user: User) => {
+    try {
+      const res = await api.post<User>(`/admin/users/${user.id}/ban`);
+      const updated = res.data;
+
+      if(updated.isBanned) {
+        toast.success(`Пользователь #${user.id} заблокирован`);
+      } else {
+        toast.success(`Пользователь #${user.id} разблокирован`);
+      }
+    } catch(err: any) {
+      if(err instanceof AxiosError) {
+        if(err.response?.data.message) {
+          toast.error(err.response.data.message);
+          return;
+        }
+      }
+
+      toast.error('Произошла ошибка');
+    } finally {
+      refresh();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Header>
@@ -110,11 +135,12 @@ export default function UsersPage() {
             <UserCard
               key={user.id}
               user={user}
-              currentAdminRole={currentRole ?? "ADMIN"}
+              currentAdmin={currentAdmin}
               onEdit={(user) => handleEdit(user)}
               onIdEdit={(user) => handleIdEdit(user)}
               onPromote={(user) => handlePromote(user)}
               onDemote={(user) => handleDemote(user)}
+              onBan={handleBan}
             />
           ))}
         </div>

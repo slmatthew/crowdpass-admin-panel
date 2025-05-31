@@ -1,23 +1,28 @@
-import { User } from "@/types/models/User";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Role } from "@/types/models";
+import { User, Admin } from "@/types/models";
 import dayjs from "dayjs";
 
 interface Props {
   user: User;
-  currentAdminRole: Role;
+  currentAdmin: Admin | null;
   onEdit: (user: User) => void;
   onIdEdit: (user: User) => void;
   onPromote: (user: User) => void;
   onDemote: (user: User) => void;
+  onBan: (user: User, status: boolean) => void;
 }
 
-export function UserCard({ user, currentAdminRole, onEdit, onIdEdit, onPromote, onDemote }: Props) {
+export function UserCard({ user, currentAdmin, onEdit, onIdEdit, onPromote, onDemote, onBan }: Props) {
   const fullName = `${user.firstName} ${user.lastName}`.trim();
   const isAdmin = !!user.admin;
-  const canModify =
-    currentAdminRole === "ROOT" || (currentAdminRole === "ADMIN" && user.admin?.role !== "ROOT");
+  const canModify = currentAdmin && (
+    currentAdmin.role === "ROOT" || (currentAdmin.role === "ADMIN" && user.admin?.role !== "ROOT"));
+  const canBan = currentAdmin && (
+    !user.admin ||
+    (user.admin && currentAdmin.role !== 'ROOT') ||
+    (user.admin && user.admin.role === 'ROOT' && currentAdmin.role === 'ROOT')
+  ) && user.id !== currentAdmin.userId;
 
   return (
     <Card className="relative p-4">
@@ -30,7 +35,7 @@ export function UserCard({ user, currentAdminRole, onEdit, onIdEdit, onPromote, 
       </div>
 
       <div className="text-lg font-semibold">
-        <span className={user.isBanned ? 'text-gray-600' : ''}>{fullName || "Без имени"}</span> <span className="text-gray-400 text-sm">#{user.id}</span>
+        <span className={user.isBanned ? 'text-gray-500' : ''}>{fullName || "Без имени"}</span> <span className="text-gray-400 text-sm">#{user.id}</span>
       </div>
 
       <div className="mt-2 space-y-1 text-sm text-gray-600">
@@ -44,6 +49,11 @@ export function UserCard({ user, currentAdminRole, onEdit, onIdEdit, onPromote, 
         <div className="text-xs text-gray-400">
           Дата регистрации: {dayjs(user.createdAt).format('DD.MM.YYYY в HH:mm:ss')}
         </div>
+        {user.isBanned && user.bannedAt && (
+          <div className="text-xs text-gray-400">
+            Дата блокировки: {dayjs(user.bannedAt).format('DD.MM.YYYY в HH:mm:ss')}
+          </div>
+        )}
       </div>
 
       <div className="mt-4 flex flex-col sm:flex-row sm:justify-between gap-2">
@@ -76,6 +86,16 @@ export function UserCard({ user, currentAdminRole, onEdit, onIdEdit, onPromote, 
           >
             🆔 ID
           </Button>
+          {user.isBanned && (
+            <Button disabled={!canBan} variant="ghost" size="sm" onClick={() => onBan(user, false)}>
+              ✅ Разбан
+            </Button>
+          )}
+          {!user.isBanned && (
+            <Button disabled={!canBan} variant="ghost" size="sm" onClick={() => onBan(user, true)}>
+              ⛔️ Бан
+            </Button>
+          )}
         </div>
       </div>
     </Card>
