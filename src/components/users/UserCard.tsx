@@ -2,6 +2,7 @@ import { User } from "@/types/models/User";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Role } from "@/types/models";
+import dayjs from "dayjs";
 
 interface Props {
   user: User;
@@ -29,7 +30,7 @@ export function UserCard({ user, currentAdminRole, onEdit, onIdEdit, onPromote, 
       </div>
 
       <div className="text-lg font-semibold">
-        {fullName || "Без имени"} <span className="text-gray-400 text-sm">#{user.id}</span>
+        <span className={user.isBanned ? 'text-gray-600' : ''}>{fullName || "Без имени"}</span> <span className="text-gray-400 text-sm">#{user.id}</span>
       </div>
 
       <div className="mt-2 space-y-1 text-sm text-gray-600">
@@ -39,6 +40,9 @@ export function UserCard({ user, currentAdminRole, onEdit, onIdEdit, onPromote, 
         <div className="text-xs text-gray-400">
           Telegram ID: {user.telegramId ? (<a href={`tg://user?id=${user.telegramId}`} target="_blank">{user.telegramId}</a>) : "—"},
           VK ID: {user.vkId ? (<a href={`https://vk.com/id${user.vkId}`} target="_blank">{user.vkId}</a>) : "—"}
+        </div>
+        <div className="text-xs text-gray-400">
+          Дата регистрации: {dayjs(user.createdAt).format('DD.MM.YYYY в HH:mm:ss')}
         </div>
       </div>
 

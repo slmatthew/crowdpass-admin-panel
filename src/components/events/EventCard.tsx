@@ -41,7 +41,7 @@ export function EventCard({ event }: { event: Event }) {
 
       <div className="p-4 flex flex-col gap-2">
         <h2 className="text-lg font-semibold">
-          {event.name}
+          <span className={(!event.isPublished || !event.isSalesEnabled) ? 'text-gray-700' : ''}>{event.name}</span>
           <span
             className={`text-xs ml-2 px-2 py-0.5 rounded-full font-semibold ${
               status === "ПРОШЛО"

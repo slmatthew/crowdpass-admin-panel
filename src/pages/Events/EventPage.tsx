@@ -16,6 +16,8 @@ import { TicketTypeModal } from "@/components/events/TicketTypeModal";
 import { TicketTypeCard } from "@/components/events/TicketTypeCard";
 import { ConfirmModal } from "@/components/modals/ConfirmModal";
 import { EventSalesChart } from "@/components/events/EventSalesChart";
+import { cn } from "@/utils/utils";
+import { AxiosError } from "axios";
 
 interface Stats {
   totalTickets: number;
@@ -107,6 +109,31 @@ export default function EventPage() {
     }
   };
 
+  const toggleEvent = async (key: 'isPublished' | 'isSalesEnabled', status: boolean) => {
+    if(event) {
+      try {
+        await api.patch(`/admin/events/${event.id}`, {
+          [key]: status
+        });
+        await refetch();
+        
+        if(key === 'isPublished') {
+          toast.success(`Мероприятие ${status ? 'опубликовано' : 'скрыто'}`);
+        } else {
+          toast.success(`Продажи ${status ? 'включены' : 'отключены'}`);
+        }
+      } catch(err: any) {
+        if(err instanceof AxiosError) {
+          if(err.response?.data.message) {
+            return toast.error(err.response.data.message);
+          }
+        }
+
+        toast.error('Произошла ошибка');
+      }
+    }
+  };
+
   if (isLoading || !event) return <p>Загрузка...</p>;
 
   const eventComing = new Date(event.endDate) > new Date();
@@ -129,13 +156,26 @@ export default function EventPage() {
           </div>
         )}
         <div className="p-6 space-y-2">
-          <h1 className="text-2xl font-bold">{event.name}</h1>
+          <h1 className={cn(
+            'text-2xl font-bold',
+            (!event.isPublished || !event.isSalesEnabled) && 'text-gray-700'
+          )}>{event.name}</h1>
           <p className="text-gray-700">{event.description}</p>
         </div>
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
         <CardButton className="bg-blue-500! text-white!" onClick={() => navigate(`/events/${event.id}/edit`)}>Редактировать</CardButton>
+        {eventComing && (
+          <>
+            <CardButton
+              className={cn('text-white!', event.isPublished ? 'bg-red-500!' : 'bg-green-500!')}
+              onClick={() => toggleEvent('isPublished', !event.isPublished)}
+            >
+              {event.isPublished ? 'Скрыть' : 'Опубликовать'}
+            </CardButton>
+          </>
+        )}
         <CardButton onClick={() => openModal("organizer", event.organizer)}>{event.organizer.name}</CardButton>
         <CardButton onClick={() => navigate(`/categories?categoryId=${event.category.id}`)}>{event.category.name}</CardButton>
         <CardButton onClick={() => navigate(`/categories?subcategoryId=${event.subcategory.id}`)}>{event.subcategory.name}</CardButton>
@@ -192,7 +232,18 @@ export default function EventPage() {
         <div className="flex justify-between items-center mb-2">
           <h2 className="text-lg font-semibold">Типы билетов</h2>
           {eventComing && (
-            <Button variant="secondary" size="sm" onClick={openCreateTicketType}>➕ Добавить</Button>
+            <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+              <Button variant="secondary" size="sm" onClick={openCreateTicketType}>
+                ➕ Добавить
+              </Button>
+              <Button
+                variant={event.isSalesEnabled ? 'destructive' : 'primary'}
+                size="sm"
+                onClick={() => toggleEvent('isSalesEnabled', !event.isSalesEnabled)}
+              >
+                {event.isSalesEnabled ? 'Прекратить продажи' : 'Начать продажи'}
+              </Button>
+            </div>
           )}
         </div>
   

@@ -1,18 +1,18 @@
 import { Admin } from "./Admin";
 import { Booking } from "./Booking";
-import { AccountLinkRequest } from "./AccountLinkRequest";
 
 export interface User {
   id: number;
-  telegramId?: string;
-  vkId?: string;
-  email?: string;
+  telegramId: string | null;
+  vkId: string | null;
+  email: string | null;
   firstName: string;
   lastName: string;
-  phone?: string;
-  createdAt: string;
+  phone: string | null;
   bookings: Booking[];
-  admin?: Admin;
-  sourceLinkRequests: AccountLinkRequest[];
-  targetLinkRequests: AccountLinkRequest[];
+  admin?: Admin | null;
+  createdAt: string;
+  updatedAt: string;
+  isBanned: boolean;
+  bannedAt: string | null;
 }

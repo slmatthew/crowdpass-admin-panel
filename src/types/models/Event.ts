@@ -10,7 +10,7 @@ export interface Event {
   startDate: string;
   endDate: string;
   location: string;
-  posterUrl?: string;
+  posterUrl: string | null;
   organizerId: number;
   categoryId: number;
   subcategoryId: number;
@@ -18,4 +18,8 @@ export interface Event {
   category: Category;
   subcategory: Subcategory;
   ticketTypes: TicketType[];
+  isPublished: boolean;
+  isSalesEnabled: boolean;
+  createdAt: string;
+  updatedAt: string | null;
 }
