@@ -1,54 +1,46 @@
-# React + TypeScript + Vite
+# CrowdPass Admin Panel
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+В этом репозитори хранится исходный код админ-панели CrowdPass
 
-Currently, two official plugins are available:
+## Установка
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+1. Склонируйте репозиторий с помощью `git clone`
+2. Перейдите в папку с проектом: `cd crowdpass-admin-panel`
+3. Выполните установку зависимостей: `npm install`
 
-## Expanding the ESLint configuration
+## Настройка
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Для настройки админ-панели используется файл `src/config/appConfig.ts` ([click](https://github.com/slmatthew/crowdpass-admin-panel/blob/dev/src/config/appConfig.ts)). Приложение само будет использовать нужную конфигурацию в зависимости от окружения.
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
+Объяснение полей и их значений:
+
+```ts
+const config = {
+  vk: {
+    app_id: 53595274, // идентично AP_VK_APP_ID в .env бекенда
+    redirect_uri: 'https://cps-test-ap.slmatthew.dev/login/vkCallback', // идентично AP_VK_REDIRECT_URI в .env бекенда
+    auth_handler_uri: 'https://cps-test.slmatthew.dev/api/auth/vk/callback' // маршрут API, использующийся для проверки данных VK ID
   },
-})
+  telegram: {
+    widget_url: 'https://oauth.tg.dev/js/telegram-widget.js?22', // используйте заданный изначально URL
+    bot_username: 'CrowdPassBot', // юзернейм Telegram-бота
+    auth_url: 'https://cps-test.slmatthew.dev/api/auth/telegram/callback', // маршрут API, использующийся для проверки данных Telegram
+  },
+
+  apiBaseUrl: 'https://cps-test.slmatthew.dev/api/', // API endpoint. значение API_BASE_URI в .env бекенда с / в конце
+};
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Вам необходимо заменить:
+1. `config.vk.app_id` – идентично `AP_VK_APP_ID` в `.env` файле бекенда
+2. `config.vk.redirect_uri` – идентично `AP_VK_REDIRECT_URI` в `.env` файле бекенда
+3. `config.vk.auth_handler_uri` – заменить домен API на свой
+4. `config.telegram.bot_username` – идентично `TELEGRAM_BOT_USERNAME` в `.env` файле бекенда
+5. `config.telegram.auth_url` – заменить домен API на свой
+6. `config.apiBaseUrl` – идентично `API_BASE_URI` в `.env` файле бекенда, только с добавлением `/` в конце
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Сборка
+`npm run build`
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+## Деплой
+Вам необходимо самостоятельно задеплоить приложение, так как я это делал на своём сервере и не пользовался ни GitHub Pages, ни иными хостингами статики
