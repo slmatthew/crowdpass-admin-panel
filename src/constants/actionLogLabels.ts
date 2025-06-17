@@ -8,6 +8,7 @@ export const actionLogLabels: Record<string, string> = {
   [ActionLogAction.EVENT_UPDATE]: "Мероприятие обновлено",
 
   [ActionLogAction.BOOKING_STATUS_UPDATE]: "Бронь: статус обновлен",
+  [ActionLogAction.BOOKING_PAID]: "Бронь: оплата",
 
   [ActionLogAction.ROOT_PURPOSE]: "Назначение ROOT",
 };

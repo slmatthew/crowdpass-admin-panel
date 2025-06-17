@@ -41,7 +41,6 @@ export function UserModal({ open, onClose, user }: Props) {
 
           <div className="pt-4 flex justify-end">
             <Button variant="secondary" size="sm" onClick={onClose}>Закрыть</Button>
-            <Button variant="primary" size="sm" className="ml-2">Перейти</Button>
           </div>
         </DialogPanel>
       </div>

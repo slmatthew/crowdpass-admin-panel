@@ -6,6 +6,7 @@ export enum ActionLogAction {
   EVENT_UPDATE = "event.update",
 
   BOOKING_STATUS_UPDATE = "booking.status.update",
+  BOOKING_PAID = "booking.paid",
 
   ROOT_PURPOSE = "system.root-purpose",
 }

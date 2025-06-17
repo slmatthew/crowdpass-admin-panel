@@ -103,7 +103,7 @@ function SidebarNav({
           <SidebarLink to="/organizers" label="Организаторы" onClick={onNavigate} />
           <SidebarLink to="/categories" label="Категории" onClick={onNavigate} />
           <SidebarLink to="/users" label="Пользователи" onClick={onNavigate} />
-          <SidebarLink to="/logs" label="Логи" onClick={onNavigate} />
+          <SidebarLink to="/logs" label="Журнал действий" onClick={onNavigate} />
         </RoleAccess>
       </nav>
 

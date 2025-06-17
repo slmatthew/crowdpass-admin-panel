@@ -28,7 +28,7 @@ export default function LogsPage() {
   const [hasMore, setHasMore] = useState(true);
   const [manualPage, setManualPage] = useState("");
 
-  const [availableActions, setAvailableActions] = useState<string[]>([]);
+  const [availableActions, setAvailableActions] = useState<string[]>(["booking.paid","event.update","ap.auth.vk","event.create","system.root-purpose"]);
   const [filters, setFilters] = useState({
     actorId: "",
     action: "",
@@ -70,7 +70,7 @@ export default function LogsPage() {
       params.append("pageSize", pageSize.toString());
 
       const res = await api.get<{ logs: ActionLog[]; total: number }>(
-        `/admin/logs?${params.toString()}`
+        `/admin/logs`, { params }
       );
 
       if (replace) {
@@ -131,9 +131,18 @@ export default function LogsPage() {
     }
   }
 
+  function resolveEntityName(entity: string): string {
+    switch(entity) {
+      case 'booking': return 'Бронирование';
+      case 'event': return 'Мероприятие';
+      case 'user': return 'Пользователь';
+      default: return entity;
+    }
+  }
+
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Логи действий</h1>
+      <h1 className="text-2xl font-bold">Журнал действий</h1>
 
       <div className="bg-white rounded-md shadow p-4 flex flex-wrap gap-4 items-end">
         <input
@@ -235,34 +244,38 @@ export default function LogsPage() {
             </tr>
           </thead>
           <tbody>
-            {logs.map((log) => (
-              <tr key={log.id} className="border-b">
-                <td className="p-2">{new Date(log.createdAt).toLocaleString()}</td>
-                <td className="p-2">
-                  <Button variant="outline" size="sm" onClick={() => openModal('user', log.actor)}>
-                    {log.actor.firstName} {log.actor.lastName} (ID: {log.actor.id})
-                  </Button>
-                </td>
-                <td className="p-2">{actionLogLabels[log.action] ?? log.action}</td>
-                <td className="p-2">{log.targetType}</td>
-                <td className="p-2">{log.targetId}</td>
-                <td className="p-2">
-                  <Disclosure as="div" defaultOpen={false}>
-                    <DisclosureButton className="group flex w-full items-center justify-between">
-                      <span>
-                        Мета-данные
-                      </span>
-                      <ChevronDown className="size-5 fill-white/60 group-data-hover:fill-white/50 group-data-open:rotate-180" />
-                    </DisclosureButton>
-                    <DisclosurePanel>
-                      <pre className="max-w-[400px] whitespace-pre-wrap break-words text-xs text-gray-600 bg-gray-50 p-2 rounded">
-                        {JSON.stringify(log.metadata, null, 2)}
-                      </pre>
-                    </DisclosurePanel>
-                  </Disclosure>
-                </td>
-              </tr>
-            ))}
+            {logs.map((log) => {
+              if(availableActions.indexOf(log.action) === -1) availableActions.push(log.action);
+
+              return (
+                <tr key={log.id} className="border-b">
+                  <td className="p-2">{new Date(log.createdAt).toLocaleString()}</td>
+                  <td className="p-2">
+                    <Button variant="outline" size="sm" onClick={() => openModal('user', log.actor)}>
+                      {log.actor.firstName} {log.actor.lastName} (ID: {log.actor.id})
+                    </Button>
+                  </td>
+                  <td className="p-2">{actionLogLabels[log.action] ?? log.action}</td>
+                  <td className="p-2">{resolveEntityName(log.targetType)}</td>
+                  <td className="p-2">{log.targetId}</td>
+                  <td className="p-2">
+                    <Disclosure as="div" defaultOpen={false}>
+                      <DisclosureButton className="group flex w-full items-center justify-between">
+                        <span>
+                          Мета-данные
+                        </span>
+                        <ChevronDown className="size-5 fill-white/60 group-data-hover:fill-white/50 group-data-open:rotate-180" />
+                      </DisclosureButton>
+                      <DisclosurePanel>
+                        <pre className="max-w-[400px] whitespace-pre-wrap break-words text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                          {JSON.stringify(log.metadata, null, 2)}
+                        </pre>
+                      </DisclosurePanel>
+                    </Disclosure>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 
