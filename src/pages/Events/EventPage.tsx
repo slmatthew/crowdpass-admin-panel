@@ -140,7 +140,7 @@ export default function EventPage() {
 
   const totalTickets = event.stats.totalTickets;
   const availableTickets = event.stats.availableTickets;
-  const soldTickets = event.stats.soldTickets;
+  const soldTickets = event.stats.soldTickets + event.stats.usedTickets;
 
   return (
     <div className="space-y-6">
